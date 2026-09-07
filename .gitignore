@@ -1,0 +1,66 @@
+# ---- Project working material (deliberately untracked) ------------------
+# docs/ holds the IEEE paper and two textbooks: copyrighted third-party
+# PDFs that must never be pushed to a public GitHub repo.
+docs/
+
+# Personal working notes / planning documents.
+plan.md
+UNDERSTANDING.md
+
+# ---- Python -------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib60/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# ---- Virtual environments ----------------------------------------------
+.venv/
+venv/
+ENV/
+env/
+
+# ---- Testing / coverage -------------------------------------------------
+.pytest_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# ---- Benchmark output ---------------------------------------------------
+# Raw measurements are machine-specific; committed results live in results/
+bench/out/
+*.bench.json
+*.bench.csv
+
+# ---- Editors / OS -------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---- Misc ---------------------------------------------------------------
+*.log
+.mypy_cache/
+.ruff_cache/
