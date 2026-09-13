@@ -64,3 +64,4 @@ Thumbs.db
 *.log
 .mypy_cache/
 .ruff_cache/
+bench/kaggle/build/

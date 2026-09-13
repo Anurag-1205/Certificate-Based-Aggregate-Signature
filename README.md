@@ -10,9 +10,11 @@ aggregate signature (CBAS) scheme of:
 
 ## Status
 
-Phase 1 complete. Both schemes implemented, the malicious-KGC forgery runs
-against Verma et al.'s CB-CAS, and a controlled ablation isolates which of the
-three fixes actually carries the security.
+Phase 2 complete. Both schemes implemented on two independent group backends,
+the malicious-KGC forgery runs against Verma et al.'s CB-CAS, a controlled
+ablation isolates which of the three fixes carries the security, and a timing
+sweep on two curves and two machines independently confirms the cost discrepancy
+found by operation counting.
 
 ## Quick start
 
@@ -20,9 +22,11 @@ three fixes actually carries the security.
 python3 -m venv .venv
 .venv/bin/pip install -e '.[dev]'
 
-make selftest   # backend algebra - run this first on a new machine
-make test       # full test suite (112 tests)
+make selftest   # backend algebra, both backends - run this first on a new machine
+make test       # full test suite (221 tests, every test on both backends)
 make attack     # side-by-side forgery demonstration
+make bench      # timing sweep and analysis
+make plots      # figures from the last bench run
 make verify     # everything
 ```
 
@@ -65,12 +69,20 @@ the `R`-in-`H0` binding and not the two-independent-oracle split.
 
 ## Design decisions
 
-**Group: Ristretto255 via native libsodium (ctypes).** The scheme's algebra
-assumes a group of *prime* order -- the security analysis and the Section IV
-forgery both invert hash scalars. Raw Curve25519/Ed25519 has cofactor 8 and is
-not prime-order; Ristretto255 is a prime-order quotient of it. libsodium's
-wide scalar reduction also gives unbiased hash-to-scalar for free, and its
-canonical-encoding checks close a class of malleability bugs at the boundary.
+**Two group backends.** The default is Ristretto255 via native libsodium. The
+scheme's algebra assumes a group of *prime* order -- the security analysis and
+the Section IV forgery both invert hash scalars -- and raw Curve25519/Ed25519
+has cofactor 8, so is not prime-order; Ristretto255 is a prime-order quotient of
+it. libsodium's wide scalar reduction also gives unbiased hash-to-scalar for
+free, and its canonical-encoding checks close a class of malleability bugs at
+the boundary.
+
+A second backend implements NIST P-256 over OpenSSL. It exists so that results
+cannot be an artefact of one curve or one library, so that the cost model is
+tested against a different balance of primitive costs, and so that two
+independent implementations can be checked against each other. Every fixture is
+parameterised over both, so the whole suite runs twice. P-256 is also the curve
+actually deployed in industrial IoT stacks.
 
 **Domain-separated `H0`/`H1`/`H2`.** The paper applies `H1` and `H2` to
 *identical* inputs. Instantiating both as the same hash makes `u == v`, which
@@ -113,6 +125,20 @@ from.
 These are locked in as regression tests in `tests/test_opcount.py`. The full evidence
 chain, including objections considered and rejected, is in [VERIFICATION.md](VERIFICATION.md).
 
+Wall-clock timing agrees independently. Fitting aggregate verification against
+`n` gives these per-signer slope ratios between the two schemes, where the
+published rows -- being identical for both -- require exactly 1.000:
+
+| Machine | Curve / library | measured | predicted from counts |
+|---|---|---:|---:|
+| Ryzen 5 7520U | Ristretto255 / libsodium | 2.153 | 2.143 |
+| Ryzen 5 7520U | P-256 / OpenSSL | 2.366 | 1.986 |
+| Xeon @ 2.20 GHz (Kaggle) | Ristretto255 / libsodium | 2.123 | 2.129 |
+
+The operation counts are identical on both backends and both machines. Details,
+methodology, and an honest account of where the timing model does not close
+exactly, in [RESULTS.md](RESULTS.md).
+
 ## Layout
 
 ```
@@ -120,8 +146,9 @@ src/cbas/
   backend/
     base.py       group interface + cost model
     sodium.py     ctypes binding to libsodium Ristretto255
+    openssl.py    ctypes binding to OpenSSL NIST P-256
     counter.py    Te/Ta/Th counting wrapper
-    selftest.py   standalone algebraic self-test
+    selftest.py   standalone algebraic self-test, both backends
   encoding.py     length-prefixed TLV
   hashing.py      domain-separated H0/H1/H2
   scheme.py       the six algorithms (the repaired scheme)
@@ -131,7 +158,16 @@ src/cbas/
   demo.py         end-to-end walkthrough
   sidebyside.py   the attack against both schemes
 tests/
-bench/            (empty; benchmark harness lands in a later stage)
+bench/
+  harness.py      timing, CPU stabilisation, linear fitting
+  ops.py          primitive Te/Ta/Th costs on this machine
+  baseline.py     Ed25519 reference point
+  sweep.py        interleaved sweep over n
+  report.py       analysis and cross-check
+  repeat.py       repeated sweeps with spread and fit-quality filter
+  plots.py        figures
+  kaggle/         self-contained script for a second-machine run
+  results/        recorded measurements (tracked)
 ```
 
 ## Requirements

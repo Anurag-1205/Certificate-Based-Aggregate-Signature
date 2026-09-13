@@ -66,7 +66,6 @@ def test_aggregate_is_constant_size(be, n):
     agg = verma.agg_sign(params, sign_all(params, signers, secrets, messages))
     size = len(be.point_to_bytes(agg.R)) + len(be.scalar_to_bytes(agg.z))
     assert size == be.point_bytes + be.scalar_bytes  # independent of n
-    assert size == 64
 
 
 def test_verma_aggverify_cost_matches_its_published_row(be):

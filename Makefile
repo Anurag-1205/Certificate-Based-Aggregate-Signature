@@ -1,12 +1,16 @@
 PY := .venv/bin/python
 
-.PHONY: help selftest test attack verify clean
+.PHONY: help selftest test attack bench bench-repeat plots kaggle-kernel verify clean
 
 help:
 	@echo "make selftest  - backend algebraic self-test (no pytest needed)"
 	@echo "make test      - full pytest suite"
 	@echo "make verify    - selftest + tests + demo + attack demo"
 	@echo "make attack    - side-by-side forgery demonstration"
+	@echo "make bench     - timing sweep and analysis, both backends"
+	@echo "make bench-repeat - repeated sweeps with spread"
+	@echo "make plots     - render figures from the last bench run"
+	@echo "make kaggle-kernel - build the self-contained Kaggle script"
 	@echo "make clean     - remove caches"
 
 selftest:
@@ -17,6 +21,20 @@ test:
 
 attack:
 	$(PY) -m cbas.sidebyside
+
+bench:
+	$(PY) -m bench.report --backend ristretto255
+	$(PY) -m bench.report --backend p256
+
+bench-repeat:
+	$(PY) -m bench.repeat --repeats 3
+
+plots:
+	$(PY) -m bench.plots --backend ristretto255
+	$(PY) -m bench.plots --backend p256
+
+kaggle-kernel:
+	$(PY) -m bench.kaggle.build_kernel
 
 verify: selftest test
 	@echo

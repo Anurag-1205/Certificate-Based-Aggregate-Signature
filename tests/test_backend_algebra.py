@@ -9,14 +9,25 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from cbas.backend import RISTRETTO255_ORDER, InvalidPoint, InvalidScalar, SodiumBackend
+from cbas.backend import (
+    P256_ORDER,
+    RISTRETTO255_ORDER,
+    InvalidPoint,
+    InvalidScalar,
+    OpenSSLBackend,
+    SodiumBackend,
+)
 
-scalars = st.integers(min_value=0, max_value=RISTRETTO255_ORDER - 1)
+# Scalars are generated in a range valid for every backend, then reduced.
+scalars = st.integers(min_value=0, max_value=2**250)
 
 
-def test_group_order_is_the_ristretto255_prime(raw_backend):
-    assert raw_backend.order == RISTRETTO255_ORDER
-    assert raw_backend.order == 2**252 + 27742317777372353535851937790883648493
+def test_group_order_is_the_documented_prime(raw_backend):
+    expected = {
+        "ristretto255/libsodium": RISTRETTO255_ORDER,
+        "p256/openssl": P256_ORDER,
+    }[raw_backend.name]
+    assert raw_backend.order == expected
 
 
 def test_order_is_prime(raw_backend):
@@ -58,17 +69,18 @@ def test_scalar_mul_compatibility(raw_backend, a, b):
     assert be.point_eq(lhs, rhs)
 
 
-@given(a=st.integers(min_value=1, max_value=RISTRETTO255_ORDER - 1))
+@given(a=st.integers(min_value=1, max_value=2**250))
 @settings(max_examples=50, deadline=None)
 def test_inverse_roundtrip(raw_backend, a):
     be = raw_backend
-    sa = be.scalar_from_int(a)
+    sa = be.scalar_from_int(a % be.order or 1)
     assert be.point_eq(be.point_mul(be.scalar_invert(sa), be.point_mul_base(sa)), be.generator)
 
 
 @given(v=scalars)
 @settings(max_examples=50, deadline=None)
 def test_scalar_int_roundtrip(raw_backend, v):
+    v %= raw_backend.order
     assert raw_backend.scalar_to_int(raw_backend.scalar_from_int(v)) == v
 
 
@@ -93,19 +105,20 @@ def test_identity_results_are_not_errors(raw_backend):
 
 def test_prime_order_via_scalar_wraparound(raw_backend):
     be = raw_backend
-    lm1 = be.scalar_from_int(RISTRETTO255_ORDER - 1)
+    lm1 = be.scalar_from_int(be.order - 1)
     assert be.point_is_identity(be.point_add(be.point_mul_base(lm1), be.generator))
 
 
-@pytest.mark.parametrize("bad", [b"\xff" * 32, b"\x01" * 32, b"\x00" * 31, b"\x00" * 33])
+@pytest.mark.parametrize("bad", [b"\xff" * 32, b"\x01" * 32, b"\x02" * 31, b"\x09" * 40])
 def test_invalid_points_rejected(raw_backend, bad):
     with pytest.raises(InvalidPoint):
         raw_backend.point_from_bytes(bad)
 
 
 def test_non_canonical_scalar_rejected(raw_backend):
+    endian = "little" if isinstance(raw_backend, SodiumBackend) else "big"
     with pytest.raises(InvalidScalar):
-        raw_backend.scalar_from_bytes((RISTRETTO255_ORDER).to_bytes(32, "little"))
+        raw_backend.scalar_from_bytes(raw_backend.order.to_bytes(32, endian))
 
 
 def test_inverting_zero_rejected(raw_backend):
@@ -121,9 +134,23 @@ def test_sum_points_costs_n_minus_1_additions(be):
     assert be.point_eq(total, be.point_mul_base(be.scalar_from_int(28)))
 
 
-def test_counting_backend_matches_raw_backend(raw_backend, be):
-    """Differential check: counting must not change results."""
-    k = be.scalar_from_int(123456789)
-    assert be.point_to_bytes(be.point_mul_base(k)) == raw_backend.point_to_bytes(
+def test_counting_backend_matches_raw_backend(raw_backend):
+    """Counting must not change results."""
+    from cbas.backend import CountingBackend
+
+    cb = CountingBackend(raw_backend)
+    k = cb.scalar_from_int(123456789)
+    assert cb.point_to_bytes(cb.point_mul_base(k)) == raw_backend.point_to_bytes(
         raw_backend.point_mul_base(raw_backend.scalar_from_int(123456789))
     )
+
+
+def test_backends_are_structurally_independent(raw_backend):
+    """The two backends are genuinely different groups, not aliases."""
+    assert raw_backend.name in {"ristretto255/libsodium", "p256/openssl"}
+    if raw_backend.name == "p256/openssl":
+        assert raw_backend.point_bytes == 33
+        assert raw_backend.order != RISTRETTO255_ORDER
+    else:
+        assert raw_backend.point_bytes == 32
+        assert raw_backend.order != P256_ORDER

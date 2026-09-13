@@ -24,7 +24,8 @@ import traceback
 
 from .base import InvalidPoint, InvalidScalar
 from .counter import CountingBackend
-from .sodium import RISTRETTO255_ORDER, SodiumBackend
+from .openssl import OpenSSLBackend
+from .sodium import SodiumBackend
 
 _PASS, _FAIL = 0, 0
 _FAILURES: list[str] = []
@@ -48,16 +49,19 @@ def check(name: str):
     return decorator
 
 
-def main() -> int:
-    be = SodiumBackend()
+def run(be) -> None:
+    """Run every check against one backend."""
+    global _PASS, _FAIL
+    ORDER = be.order
     P = be.generator
     O = be.identity
 
     print(f"backend        : {be.name}")
-    print(f"libsodium      : {be.libsodium_version}")
-    print(f"group order    : {be.order}")
-    print(f"order == 2^252 + 27742317777372353535851937790883648493: "
-          f"{be.order == RISTRETTO255_ORDER}")
+    if isinstance(be, SodiumBackend):
+        print(f"library        : libsodium {be.libsodium_version}")
+    else:
+        print(f"library        : {be.openssl_version}")
+    print(f"group order    : {ORDER}")
     print()
     print("group axioms")
 
@@ -129,14 +133,14 @@ def main() -> int:
     print()
     print("prime order")
 
-    @check("(l-1)*P + P == O  (the group order really is l)")
+    @check("(order-1)*P + P == O  (the group order is as declared)")
     def _():
-        lm1 = be.scalar_from_int(RISTRETTO255_ORDER - 1)
+        lm1 = be.scalar_from_int(ORDER - 1)
         assert be.point_is_identity(be.point_add(be.point_mul_base(lm1), P))
 
-    @check("(l-1)*P == -P")
+    @check("(order-1)*P == -P")
     def _():
-        lm1 = be.scalar_from_int(RISTRETTO255_ORDER - 1)
+        lm1 = be.scalar_from_int(ORDER - 1)
         assert be.point_eq(be.point_mul_base(lm1), be.point_sub(O, P))
 
     print()
@@ -163,20 +167,20 @@ def main() -> int:
 
     @check("scalar_from_int / scalar_to_int round-trip")
     def _():
-        for v in (0, 1, 2, 12345, RISTRETTO255_ORDER - 1):
+        for v in (0, 1, 2, 12345, ORDER - 1):
             assert be.scalar_to_int(be.scalar_from_int(v)) == v
 
-    @check("scalar_from_int reduces mod l")
+    @check("scalar_from_int reduces mod the group order")
     def _():
-        assert be.scalar_to_int(be.scalar_from_int(RISTRETTO255_ORDER)) == 0
-        assert be.scalar_to_int(be.scalar_from_int(RISTRETTO255_ORDER + 7)) == 7
+        assert be.scalar_to_int(be.scalar_from_int(ORDER)) == 0
+        assert be.scalar_to_int(be.scalar_from_int(ORDER + 7)) == 7
 
     @check("wide reduction is deterministic and in range")
     def _():
         w = os.urandom(64)
         s1, s2 = be.scalar_from_wide(w), be.scalar_from_wide(w)
         assert s1 == s2
-        assert 0 <= be.scalar_to_int(s1) < RISTRETTO255_ORDER
+        assert 0 <= be.scalar_to_int(s1) < ORDER
 
     print()
     print("identity handling (the libsodium -1 hazard)")
@@ -211,7 +215,7 @@ def main() -> int:
     @check("invalid point encoding is rejected")
     def _():
         try:
-            be.point_from_bytes(b"\xff" * 32)
+            be.point_from_bytes(b"\xff" * be.point_bytes)
         except InvalidPoint:
             return
         raise AssertionError("expected InvalidPoint")
@@ -219,15 +223,16 @@ def main() -> int:
     @check("wrong-length point is rejected")
     def _():
         try:
-            be.point_from_bytes(b"\x00" * 31)
+            be.point_from_bytes(b"\x02" * (be.point_bytes + 7))
         except InvalidPoint:
             return
         raise AssertionError("expected InvalidPoint")
 
-    @check("non-canonical scalar (>= l) is rejected")
+    @check("non-canonical scalar (>= group order) is rejected")
     def _():
+        endian = "little" if isinstance(be, SodiumBackend) else "big"
         try:
-            be.scalar_from_bytes((RISTRETTO255_ORDER).to_bytes(32, "little"))
+            be.scalar_from_bytes(ORDER.to_bytes(32, endian))
         except InvalidScalar:
             return
         raise AssertionError("expected InvalidScalar")
@@ -242,7 +247,7 @@ def main() -> int:
 
     @check("counter tallies Te / Ta / Th correctly")
     def _():
-        cb = CountingBackend(SodiumBackend())
+        cb = CountingBackend(type(be)())
         with cb.count() as c:
             A = cb.point_mul_base(cb.scalar_random())   # 1 Te
             B = cb.point_mul(cb.scalar_random(), A)     # 1 Te
@@ -253,7 +258,7 @@ def main() -> int:
 
     @check("counter blocks are independent")
     def _():
-        cb = CountingBackend(SodiumBackend())
+        cb = CountingBackend(type(be)())
         with cb.count() as c1:
             cb.point_mul_base(cb.scalar_from_int(3))
         with cb.count() as c2:
@@ -263,7 +268,7 @@ def main() -> int:
 
     @check("sum_points costs exactly n-1 Ta")
     def _():
-        cb = CountingBackend(SodiumBackend())
+        cb = CountingBackend(type(be)())
         pts = [cb.point_mul_base(cb.scalar_from_int(i + 1)) for i in range(6)]
         with cb.count() as c:
             total = cb.sum_points(pts)
@@ -279,8 +284,22 @@ def main() -> int:
         assert OpCount(Te=102, Ta=101, Th=200).formula(100) == "(n+2)Te + (n+1)Ta + 2nTh"
 
     print()
+
+
+def main(backends=None) -> int:
+    """Run the checks against every backend, or the ones named."""
+    from . import BACKENDS
+
+    names = backends or sorted(BACKENDS)
+    for i, name in enumerate(names):
+        if i:
+            print("-" * 60)
+            print()
+        run(BACKENDS[name]())
+
     print("=" * 60)
-    print(f"  {_PASS} passed, {_FAIL} failed")
+    print(f"  {_PASS} passed, {_FAIL} failed   "
+          f"({len(names)} backend{'s' if len(names) != 1 else ''}: {', '.join(names)})")
     if _FAILURES:
         print()
         for f in _FAILURES:
@@ -290,4 +309,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1:] or None))

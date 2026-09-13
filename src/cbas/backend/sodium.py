@@ -55,12 +55,29 @@ _SCALAR_BYTES = 32
 _WIDE_BYTES = 64
 
 
+def _pynacl_sodium() -> Optional[str]:
+    """PyNaCl ships a compiled libsodium; use it if no system copy exists.
+
+    Lets the project run on hosts without libsodium installed (managed
+    notebook images, for instance) without changing anything else.
+    """
+    try:
+        import nacl._sodium as _s  # type: ignore
+    except Exception:
+        return None
+    return getattr(_s, "__file__", None)
+
+
 def _load_libsodium(path: Optional[str] = None) -> ctypes.CDLL:
     candidates = [path] if path else []
     found = ctypes.util.find_library("sodium")
     if found:
         candidates.append(found)
-    candidates += ["libsodium.so.23", "libsodium.so", "libsodium.dylib"]
+    candidates += ["libsodium.so.23", "libsodium.so.26", "libsodium.so",
+                   "libsodium.dylib"]
+    bundled = _pynacl_sodium()
+    if bundled:
+        candidates.append(bundled)
     errors = []
     for cand in candidates:
         if not cand:
@@ -69,6 +86,9 @@ def _load_libsodium(path: Optional[str] = None) -> ctypes.CDLL:
             lib = ctypes.CDLL(cand)
         except OSError as exc:  # pragma: no cover - environment dependent
             errors.append(f"{cand}: {exc}")
+            continue
+        if not hasattr(lib, "crypto_core_ristretto255_add"):
+            errors.append(f"{cand}: no Ristretto255 support")
             continue
         if lib.sodium_init() < 0:  # pragma: no cover
             raise BackendError(f"sodium_init() failed for {cand}")
