@@ -10,11 +10,12 @@ aggregate signature (CBAS) scheme of:
 
 ## Status
 
-Phase 2 complete. Both schemes implemented on two independent group backends,
+Phase 3 complete. Both schemes implemented on two independent group backends,
 the malicious-KGC forgery runs against Verma et al.'s CB-CAS, a controlled
 ablation isolates which of the three fixes carries the security, and a timing
 sweep on two curves and two machines independently confirms the cost discrepancy
-found by operation counting.
+found by operation counting. Optimised verification paths show the disparity
+widens rather than closes when both schemes are implemented well.
 
 ## Quick start
 
@@ -26,6 +27,7 @@ make selftest   # backend algebra, both backends - run this first on a new machi
 make test       # full test suite (221 tests, every test on both backends)
 make attack     # side-by-side forgery demonstration
 make bench      # timing sweep and analysis
+make optimize   # optimised verification, both schemes
 make plots      # figures from the last bench run
 make verify     # everything
 ```
@@ -139,6 +141,12 @@ The operation counts are identical on both backends and both machines. Details,
 methodology, and an honest account of where the timing model does not close
 exactly, in [RESULTS.md](RESULTS.md).
 
+Optimising does not rescue the published parity claim. With multi-scalar
+multiplication and a prepared signer roster applied to **both** schemes, the
+per-signer ratio moves from 2.36 to **3.04** — Verma's scheme optimises further,
+because its verification is an MSM over `n+2` terms against this scheme's
+`3n+1`. See [OPTIMIZATION.md](OPTIMIZATION.md).
+
 ## Layout
 
 ```
@@ -151,7 +159,8 @@ src/cbas/
     selftest.py   standalone algebraic self-test, both backends
   encoding.py     length-prefixed TLV
   hashing.py      domain-separated H0/H1/H2
-  scheme.py       the six algorithms (the repaired scheme)
+  scheme.py       the six algorithms (the repaired scheme, naive reference)
+  optimized.py    MSM + prepared-roster verification, both schemes
   verma.py        Verma et al.'s CB-CAS - INSECURE, for attack demos only
   attack.py       the malicious-KGC forgery
   ablation.py     Fix #2 removed - controlled experiment, NOT a real scheme
@@ -165,6 +174,7 @@ bench/
   sweep.py        interleaved sweep over n
   report.py       analysis and cross-check
   repeat.py       repeated sweeps with spread and fit-quality filter
+  optimization.py Phase 3: optimised verification comparison
   plots.py        figures
   kaggle/         self-contained script for a second-machine run
   results/        recorded measurements (tracked)

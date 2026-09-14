@@ -42,6 +42,16 @@ class CountResult:
     def Ts(self) -> int:
         return self.ops.Ts
 
+    @property
+    def Tm(self) -> int:
+        """Native multi-scalar multiplications performed."""
+        return self.ops.Tm
+
+    @property
+    def Tm_terms(self) -> int:
+        """Total terms evaluated across those multi-scalar multiplications."""
+        return self.ops.Tm_terms
+
     def formula(self, n: int) -> str:
         return self.ops.formula(n)
 
@@ -65,6 +75,8 @@ class CountingBackend(Backend):
         self._ta = 0
         self._th = 0
         self._ts = 0
+        self._tm = 0
+        self._tm_terms = 0
 
     # -- identity of the wrapper -----------------------------------------
     @property
@@ -93,12 +105,18 @@ class CountingBackend(Backend):
 
     # -- counting ---------------------------------------------------------
     @property
+    def has_native_msm(self) -> bool:  # type: ignore[override]
+        return self._inner.has_native_msm
+
+    @property
     def ops(self) -> OpCount:
         """Cumulative counts since construction or the last :meth:`reset`."""
-        return OpCount(Te=self._te, Ta=self._ta, Th=self._th, Ts=self._ts)
+        return OpCount(Te=self._te, Ta=self._ta, Th=self._th, Ts=self._ts,
+                       Tm=self._tm, Tm_terms=self._tm_terms)
 
     def reset(self) -> None:
         self._te = self._ta = self._th = self._ts = 0
+        self._tm = self._tm_terms = 0
 
     @contextmanager
     def count(self):
@@ -133,6 +151,17 @@ class CountingBackend(Backend):
     def point_sub(self, a, b):
         self._ta += 1
         return self._inner.point_sub(a, b)
+
+    # -- multi-scalar multiplication (Tm; outside the paper's model) -------
+    def multi_scalar_mul(self, base_scalar, points, scalars):
+        points = list(points)
+        if self._inner.has_native_msm:
+            # One native call: not decomposable into Te, so counted separately.
+            self._tm += 1
+            self._tm_terms += len(points)
+            return self._inner.multi_scalar_mul(base_scalar, points, scalars)
+        # Fallback path runs through this wrapper, so Te/Ta are counted normally.
+        return Backend.multi_scalar_mul(self, base_scalar, points, scalars)
 
     # -- counted hashes (Th) ----------------------------------------------
     def note_hash(self, count: int = 1) -> None:

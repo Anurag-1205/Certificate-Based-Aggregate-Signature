@@ -89,6 +89,10 @@ def _declare(l: ctypes.CDLL) -> None:
     l.EC_POINT_point2oct.argtypes = [P, P, ctypes.c_int, ctypes.c_char_p,
                                      ctypes.c_size_t, P]
     l.EC_POINT_oct2point.argtypes = [P, P, ctypes.c_char_p, ctypes.c_size_t, P]
+    if hasattr(l, "EC_POINTs_mul"):
+        l.EC_POINTs_mul.restype = ctypes.c_int
+        l.EC_POINTs_mul.argtypes = [P, P, P, ctypes.c_size_t,
+                                    ctypes.POINTER(P), ctypes.POINTER(P), P]
 
     l.BN_CTX_new.restype = P
     l.BN_CTX_free.argtypes = [P]
@@ -201,6 +205,8 @@ class OpenSSLBackend(Backend):
             raise BackendError("EC_GROUP_new_by_curve_name failed for P-256")
         self._ctx = self._lib.BN_CTX_new()
         self._order_ptr = self._lib.EC_GROUP_get0_order(self._group)
+
+        self.has_native_msm = hasattr(self._lib, "EC_POINTs_mul")
 
         gen = self._lib.EC_GROUP_get0_generator(self._group)
         g = self._lib.EC_POINT_new(self._group)
@@ -320,6 +326,37 @@ class OpenSSLBackend(Backend):
         if self._lib.EC_POINT_invert(self._group, neg.ptr, self._ctx) != 1:  # pragma: no cover
             raise InvalidPoint("EC_POINT_invert failed")
         return self.point_add(a, neg)
+
+    def multi_scalar_mul(self, base_scalar, points, scalars):
+        """``base_scalar*G + sum(scalars[i]*points[i])`` in a single C call.
+
+        OpenSSL evaluates this with an interleaved windowed method, so the
+        whole sum costs far less than driving each term across the ctypes
+        boundary from Python. ``EC_POINTs_mul`` is deprecated in OpenSSL 3.0
+        but still exported and functional; the naive path in the base class
+        remains available and is what the correctness tests compare against.
+        """
+        if not self.has_native_msm:  # pragma: no cover
+            return super().multi_scalar_mul(base_scalar, points, scalars)
+        points = list(points)
+        scalars = list(scalars)
+        if len(points) != len(scalars):
+            raise BackendError("multi_scalar_mul: points and scalars differ in length")
+        if not points:
+            return (self.point_mul_base(base_scalar) if base_scalar is not None
+                    else self.identity)
+
+        k = len(points)
+        arr_p = (ctypes.c_void_p * k)(*[p.ptr for p in points])
+        arr_m = (ctypes.c_void_p * k)(*[s.ptr for s in scalars])
+        out = self._new_pt()
+        rc = self._lib.EC_POINTs_mul(
+            self._group, out.ptr,
+            base_scalar.ptr if base_scalar is not None else None,
+            k, arr_p, arr_m, self._ctx)
+        if rc != 1:  # pragma: no cover
+            raise BackendError("EC_POINTs_mul failed")
+        return out
 
     def point_eq(self, a: _PT, b: _PT) -> bool:
         return self._lib.EC_POINT_cmp(self._group, a.ptr, b.ptr, self._ctx) == 0
