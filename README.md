@@ -10,12 +10,14 @@ aggregate signature (CBAS) scheme of:
 
 ## Status
 
-Phase 3 complete. Both schemes implemented on two independent group backends,
+Phase 4 complete. Both schemes implemented on two independent group backends,
 the malicious-KGC forgery runs against Verma et al.'s CB-CAS, a controlled
 ablation isolates which of the three fixes carries the security, and a timing
 sweep on two curves and two machines independently confirms the cost discrepancy
 found by operation counting. Optimised verification paths show the disparity
-widens rather than closes when both schemes are implemented well.
+widens rather than closes when both schemes are implemented well. The
+aggregator implements pre-verification and fault localisation for a
+denial-of-service vector the scheme's system model does not cover.
 
 ## Quick start
 
@@ -28,6 +30,7 @@ make test       # full test suite (221 tests, every test on both backends)
 make attack     # side-by-side forgery demonstration
 make bench      # timing sweep and analysis
 make optimize   # optimised verification, both schemes
+make dos        # aggregator policy under faults
 make plots      # figures from the last bench run
 make verify     # everything
 ```
@@ -147,6 +150,14 @@ per-signer ratio moves from 2.36 to **3.04** — Verma's scheme optimises furthe
 because its verification is an MSM over `n+2` terms against this scheme's
 `3n+1`. See [OPTIMIZATION.md](OPTIMIZATION.md).
 
+## The aggregator
+
+Summing the scalars destroys the information needed to attribute a failure: one
+invalid signature fails the whole aggregate and the culprit cannot be identified
+from it. `cbas/aggregator.py` adds pre-verification and `O(f log n)` fault
+localisation, with measurements of when each is the right choice.
+See [AGGREGATOR.md](AGGREGATOR.md).
+
 ## Layout
 
 ```
@@ -161,6 +172,7 @@ src/cbas/
   hashing.py      domain-separated H0/H1/H2
   scheme.py       the six algorithms (the repaired scheme, naive reference)
   optimized.py    MSM + prepared-roster verification, both schemes
+  aggregator.py   pre-verification, fault localisation, sub-batching
   verma.py        Verma et al.'s CB-CAS - INSECURE, for attack demos only
   attack.py       the malicious-KGC forgery
   ablation.py     Fix #2 removed - controlled experiment, NOT a real scheme
@@ -175,6 +187,7 @@ bench/
   report.py       analysis and cross-check
   repeat.py       repeated sweeps with spread and fit-quality filter
   optimization.py Phase 3: optimised verification comparison
+  dos.py          Phase 4: aggregator policy under faults
   plots.py        figures
   kaggle/         self-contained script for a second-machine run
   results/        recorded measurements (tracked)

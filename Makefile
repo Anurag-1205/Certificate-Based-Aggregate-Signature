@@ -1,6 +1,6 @@
 PY := .venv/bin/python
 
-.PHONY: help selftest test attack bench bench-repeat optimize plots kaggle-kernel verify clean
+.PHONY: help selftest test attack bench bench-repeat optimize dos plots kaggle-kernel verify clean
 
 help:
 	@echo "make selftest  - backend algebraic self-test (no pytest needed)"
@@ -10,6 +10,7 @@ help:
 	@echo "make bench     - timing sweep and analysis, both backends"
 	@echo "make bench-repeat - repeated sweeps with spread"
 	@echo "make optimize  - optimised verification, both schemes"
+	@echo "make dos       - aggregator policy under faults"
 	@echo "make plots     - render figures from the last bench run"
 	@echo "make kaggle-kernel - build the self-contained Kaggle script"
 	@echo "make clean     - remove caches"
@@ -29,6 +30,9 @@ bench:
 
 bench-repeat:
 	$(PY) -m bench.repeat --repeats 3
+
+dos:
+	$(PY) -m bench.dos --backend p256
 
 optimize:
 	$(PY) -m bench.optimization --backend p256
