@@ -8,6 +8,7 @@ from __future__ import annotations
 from . import scheme as fixed
 from . import verma
 from .attack import attempt_forge_fixed, forge_verma
+from .keyonly_attack import attempt_keyonly_forge_fixed, forge_verma_keyonly
 from .backend import SodiumBackend
 
 RULE = "=" * 74
@@ -94,10 +95,42 @@ def _wrap(text: str, width: int):
     return out
 
 
+def run_keyonly(be) -> bool:
+    print()
+    print(RULE)
+    print("  TARGET 3  key-only universal forgery (no observation needed at all)")
+    print(RULE)
+
+    params, msk = verma.setup(be, b"epoch-0")
+    ident = b"sensor-042"
+    keys = verma.keygen(params)
+    signer = verma.Signer(identity=ident, pk=keys.pk)
+    target = b"KEY-ONLY FORGERY, ZERO PRIOR SIGNATURES SEEN"
+
+    print(f"  attacker capability : sees pk_TA and this signer's public key.")
+    print(f"                        Nothing else -- no cert, no signature, no")
+    print(f"                        interaction with the KGC or the signer.\n")
+    print(f"  target message      : {target.decode()}")
+
+    forged = forge_verma_keyonly(params, ident, keys.pk, target)
+    ok = verma.verify_single(params, signer, target, forged)
+    print(f"  forged sig verifies : {ok}    <-- {'UNIVERSAL FORGERY' if ok else 'failed'}")
+
+    print()
+    fparams, fmsk = fixed.setup(be, b"epoch-0")
+    fkeys = fixed.keygen(fparams)
+    fcert = fixed.cert_gen(fparams, fmsk, ident, fkeys.pk)
+    attempt = attempt_keyonly_forge_fixed(fparams, ident, fkeys.pk, R_seed=fcert.R,
+                                          T_seed=fcert.R, target_message=target)
+    print(f"  same attack on the repaired scheme succeeds : {attempt.succeeded}")
+    return ok and not attempt.succeeded
+
+
 def main() -> int:
     be = SodiumBackend()
     broke_verma = run_verma(be)
     held_fixed = run_fixed(be)
+    keyonly_ok = run_keyonly(be)
 
     print()
     print(RULE)
@@ -114,9 +147,14 @@ def main() -> int:
     print("  Binding the nonce commitment T_i into the hash is what makes the")
     print("  rescaling step circular. Verma omitted it to obtain a constant-size")
     print("  aggregate; that compactness is exactly what cost them the scheme.")
+    print()
+    print("  A second, independent flaw: Verma never binds the commitment R into")
+    print("  any hash at all, so an outsider with only the public key -- no")
+    print("  signature ever observed -- can solve for R directly. See")
+    print("  KEYONLY_FORGERY.md.")
     print(RULE)
 
-    return 0 if (broke_verma and held_fixed) else 1
+    return 0 if (broke_verma and held_fixed and keyonly_ok) else 1
 
 
 if __name__ == "__main__":

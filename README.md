@@ -10,7 +10,7 @@ aggregate signature (CBAS) scheme of:
 
 ## Status
 
-Phase 4 complete. Both schemes implemented on two independent group backends,
+Phase 5 complete. Both schemes implemented on two independent group backends,
 the malicious-KGC forgery runs against Verma et al.'s CB-CAS, a controlled
 ablation isolates which of the three fixes carries the security, and a timing
 sweep on two curves and two machines independently confirms the cost discrepancy
@@ -158,6 +158,15 @@ from it. `cbas/aggregator.py` adds pre-verification and `O(f log n)` fault
 localisation, with measurements of when each is the right choice.
 See [AGGREGATOR.md](AGGREGATOR.md).
 
+## A second, independent forgery
+
+Verma's scheme never binds its commitment `R` into any hash. An outsider who
+has seen only the target's public key -- no certificate, no signature, ever --
+can solve for `R` directly and forge a valid signature on any message. A pair
+of single-fix ablations shows the scheme's two corrections each close a
+*different* such door, and neither protects the other's.
+See [KEYONLY_FORGERY.md](KEYONLY_FORGERY.md).
+
 ## Layout
 
 ```
@@ -176,6 +185,8 @@ src/cbas/
   verma.py        Verma et al.'s CB-CAS - INSECURE, for attack demos only
   attack.py       the malicious-KGC forgery
   ablation.py     Fix #2 removed - controlled experiment, NOT a real scheme
+  ablation_r.py   Fix #1 removed - the complementary experiment
+  keyonly_attack.py  key-only universal forgery + why it fails on the fix
   demo.py         end-to-end walkthrough
   sidebyside.py   the attack against both schemes
 tests/
