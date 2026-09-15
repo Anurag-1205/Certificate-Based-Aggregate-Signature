@@ -65,3 +65,6 @@ Thumbs.db
 .mypy_cache/
 .ruff_cache/
 bench/kaggle/build/
+
+# Handoff notes for continuing this work (working document, not a deliverable).
+CONTEXT.md
