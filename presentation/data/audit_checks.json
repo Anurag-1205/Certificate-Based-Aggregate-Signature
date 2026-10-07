@@ -1,0 +1,100 @@
+{
+  "t_binding": {
+    "p256": {
+      "T in H1 only": {
+        "kgc_rescaling_forges": false,
+        "user_mirror_rescaling_forges": true
+      },
+      "T in H2 only": {
+        "kgc_rescaling_forges": true,
+        "user_mirror_rescaling_forges": false
+      },
+      "T in both (Qiao)": {
+        "kgc_rescaling_forges": false,
+        "user_mirror_rescaling_forges": false
+      },
+      "T in neither (ablation)": {
+        "kgc_rescaling_forges": true,
+        "user_mirror_rescaling_forges": true
+      },
+      "u_equals_v_variant": {
+        "honest_verifies": true,
+        "kgc_rescaling_forges": false
+      }
+    },
+    "ristretto255": {
+      "T in H1 only": {
+        "kgc_rescaling_forges": false,
+        "user_mirror_rescaling_forges": true
+      },
+      "T in H2 only": {
+        "kgc_rescaling_forges": true,
+        "user_mirror_rescaling_forges": false
+      },
+      "T in both (Qiao)": {
+        "kgc_rescaling_forges": false,
+        "user_mirror_rescaling_forges": false
+      },
+      "T in neither (ablation)": {
+        "kgc_rescaling_forges": true,
+        "user_mirror_rescaling_forges": true
+      },
+      "u_equals_v_variant": {
+        "honest_verifies": true,
+        "kgc_rescaling_forges": false
+      }
+    }
+  },
+  "verma_public_only": {
+    "p256": true,
+    "ristretto255": true
+  },
+  "timing_model": {
+    "p256": [
+      {
+        "bare": 1.9886498976552431,
+        "real_hash": 2.36534816186258,
+        "Te_us": 41.368216798787216,
+        "Ta_us": 2.9092088622562073,
+        "Th_bare_us": 3.491008789158201
+      },
+      {
+        "bare": 1.9868398184765916,
+        "real_hash": 2.3716435657295873,
+        "Te_us": 41.48518945257251,
+        "Ta_us": 2.87767163098529,
+        "Th_bare_us": 3.5550655517191387
+      },
+      {
+        "bare": 1.985126889424197,
+        "real_hash": 2.374110275674111,
+        "Te_us": 42.67993163864503,
+        "Ta_us": 3.0867508544751843,
+        "Th_bare_us": 3.882946777444829
+      }
+    ],
+    "ristretto255": [
+      {
+        "bare": 2.144502761997629,
+        "real_hash": 2.14709957138586,
+        "Te_us": 62.27022070248722,
+        "Ta_us": 24.440527342998546,
+        "Th_bare_us": 9.240134765775565
+      },
+      {
+        "bare": 2.144878147922737,
+        "real_hash": 2.1458387992373464,
+        "Te_us": 62.46765819994948,
+        "Ta_us": 24.295880859170893,
+        "Th_bare_us": 9.091438476271918
+      },
+      {
+        "bare": 2.1459533345456085,
+        "real_hash": 2.1442273160776297,
+        "Te_us": 61.65681445224891,
+        "Ta_us": 24.276888671200442,
+        "Th_bare_us": 9.083146972788114
+      }
+    ]
+  }
+}
