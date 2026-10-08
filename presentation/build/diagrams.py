@@ -29,7 +29,7 @@ def protocol(s, concrete):
     for a, b, t in groups:
         box(s, cx(a) + 0.02, 1.62, (b - a) * CW - 0.04, 0.33, fill=T.PANEL, line=None, radius=0.04, text=t, size=12.5,
             color=T.MUTED, check=False)
-    for k, name in enumerate(["① Setup", "② KeyGen", "③ CertGen", "④ Sign", "④ AggSign", "⑤ AggVerify"]):
+    for k, name in enumerate(["① Setup", "② KeyGen", "③ CertGen", "④ Sign", "⑤ AggSign", "⑥ AggVerify"]):
         tb(s, cx(k), 1.98, CW, 0.4, name, size=15, bold=True, align="c", anchor="m", check=False)
     # lanes
     from lib import PARTY

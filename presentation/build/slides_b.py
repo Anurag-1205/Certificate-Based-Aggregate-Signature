@@ -16,7 +16,7 @@ def eq(s, x, y, w, markup, size=24, color=T.INK, h=0.5, align="l"):
 
 def build(d):
     # ------------------------------------------------------------------ 6. protocol overview (generic)
-    s = d.slide("Part II · Any CBAS scheme", "Six algorithms, five phases, four parties", tags=["PAPER"], notes=N("""
+    s = d.slide("Part II · Any CBAS scheme", "Six algorithms, four parties", tags=["PAPER"], notes=N("""
         SAY: Here is the same system as an event diagram. Time runs left to right; each row is a party. Setup runs at the KGC and produces public parameters and a master secret. Each sensor runs KeyGen, then sends its public key to the KGC, which runs CertGen and returns a certificate. Sensors sign their readings with Sign. The aggregator runs AggSign on the n signatures. The cloud runs AggVerify and gets 1 or 0.
         AUDIENCE SHOULD GET: which party generates each object. The padlocks mark secrets. Grey dashed items are steps the paper does not specify: how the certificate reaches the sensor, and how the verifier obtains each signer's public key. We show them as abstracted rather than inventing a protocol.
         The paper calls AggVerify 'Very' in its sections IV and V; it is the same algorithm.

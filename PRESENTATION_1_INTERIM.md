@@ -7,7 +7,7 @@ as your rehearsal sheet.
 - Deck: `presentation/CBAS_Interim_Presentation.pptx` (PDF beside it)
 - Full speaker notes, every slide: `presentation/speaker_notes.md` (also inside the .pptx)
 - Code checkpoint: git tag `presentation-1-interim` (commit `881b7b0`)
-- The main talk is **31 slides**, then **Thank You**, then **backup slides B1-B12**
+- The main talk is **32 slides** (the last one is "What remains for the final presentation"), then **Thank You**, then **backup slides B1-B12**
   that you open only if a question needs them.
 
 ## 1. The whole talk in one paragraph
@@ -175,7 +175,7 @@ Tags are the small coloured chips at the top right of each slide.
 | # | Message | Say first | 20-min |
 |---|---|---|---|
 | 1 | The paper (title slide) | "This is the paper we studied: we ran its attack, tested its repair and checked its cost numbers." | keep |
-| 2 | The hook and the setting | "Why is this paper interesting? One question: can a malicious key authority forge sensor data? Here is the system: sensors sign, an aggregator combines, the cloud verifies; the KGC only acts at the start." Name the five phases. | keep, quick |
+| 2 | The hook and the setting | "Why is this paper interesting? One question: can a malicious key authority forge sensor data? Here is the system: sensors sign, an aggregator combines, the cloud verifies; the KGC only acts at the start." Name the six algorithms in order: Setup, KeyGen, CertGen, Sign, AggSign, AggVerify. | keep, quick |
 | 3 | Why aggregate | "n signatures become one aggregate and one check." | skip |
 | 4 | Who holds the key | Three columns; end on "the KGC alone must not be able to sign." (PKI / identity-based are standard background, labelled so.) | quick |
 | 5 | The threat | Postbank example from the paper; read the three questions; point at the tag legend. | keep |
@@ -235,7 +235,8 @@ Tags are the small coloured chips at the top right of each slide.
 | # | Message | Say first | 20-min |
 |---|---|---|---|
 | 31 | Established / not | Reproduced, our audit, not established. Say the three things to remember. | keep |
-| 32 | Thank you | **Stop.** Do not advance into the appendix unless asked. | keep |
+| 32 | What remains for the final presentation | "Today we reproduced and audited; next we test the repaired scheme itself." Read the four headings: faster verification, the aggregator in practice, a second look at the attack, open analysis (nonce reuse, forward-security claim). Do not give results for these today. | keep, quick |
+| 33 | Thank you | **Stop.** Do not advance into the appendix unless asked. | keep |
 
 ## 8. Timing and the 20-minute route
 
@@ -243,7 +244,7 @@ Tags are the small coloured chips at the top right of each slide.
   in total), before questions.
 - **20-minute route (about 20 minutes):** skip 3, 6 and 17 (cover them in one sentence
   on the neighbouring slide); present 12 to 14 together in about two minutes; show
-  Demo 2 from the screenshot; keep 1, 2, 5, 8, 10, 11, 15, 16, 19, 22, 26, 28, 30, 31;
+  Demo 2 from the screenshot; keep 1, 2, 5, 8, 10, 11, 15, 16, 19, 22, 26, 28, 30, 31, 32 (quick);
   everything else quickly. No slide is deleted; the route is marked in each slide's
   speaker notes under "20-MINUTE ROUTE".
 

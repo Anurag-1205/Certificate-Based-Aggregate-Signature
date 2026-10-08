@@ -10,7 +10,7 @@ for i, sl in enumerate(prs.slides, 1):
     texts = [(sh.top, sh.left, sh.text_frame.text) for sh in sl.shapes if sh.has_text_frame and sh.text_frame.text.strip()]
     tags = [t for top, left, t in texts if t in TAGS and top < 600000]
     title = next((t for top, left, t in sorted(texts) if 450000 < top < 700000 and t not in TAGS), "(title or divider slide)")
-    title = {1: "Title slide", 32: "Thank you (the talk ends here)", 33: "Appendix divider (backup, only if asked)"}.get(i, title)
+    title = {1: "Title slide", 33: "Thank you (the talk ends here)", 34: "Appendix divider (backup, only if asked)"}.get(i, title)
     label = next((m.group(1) for _, _, tx in texts if (m := re.fullmatch(r"Backup (B\d+)", tx.strip()))), None)
     num = label if label else str(i)
     for t in tags: bytag[t].append(num)

@@ -145,7 +145,7 @@ NOTES = {
 
 # 20-minute route: KEEP = give it its full time; QUICK = one or two sentences; SKIP = cover in one spoken sentence on the neighbouring slide
 ROUTE = {
-1: "KEEP (30 s).", 2: "KEEP, quick (45 s): name the four parties and the five phases.",
+1: "KEEP (30 s).", 2: "KEEP, quick (45 s): name the four parties and the six algorithms in order.",
 3: "SKIP: say it while on slide 2 ('the aggregator combines n signatures into one').",
 4: "QUICK (30 s): one sentence per column; end on 'the KGC alone must not be able to sign'.",
 5: "KEEP (1 min): the threat and the three questions.",
@@ -164,7 +164,8 @@ ROUTE = {
 25: "QUICK (30 s): the chain, once.", 26: "KEEP (1 min): the table and the calibration box.",
 27: "QUICK (30 s): caching explains the single row, not the aggregate row.", 28: "KEEP (45 s): the n = 100 bars.",
 29: "QUICK (45 s): the [6] caveat must still be said aloud.", 30: "KEEP (1 min): both charts.",
-31: "KEEP (45 s): three things to remember, then stop.",
+31: "KEEP (45 s): three things to remember.",
+32: "KEEP, quick (30 s): read the four headings, then stop.",
 }
 
 FALLBACK = {
@@ -175,7 +176,7 @@ FALLBACK = {
 
 def apply(prs):
     for i, sl in enumerate(prs.slides, 1):
-        if i > 31:
+        if i > 32:
             break
         if not sl.has_notes_slide:
             continue

@@ -43,7 +43,7 @@ def build(d):
     s = d.slide("Part I · The setting", "Can a malicious key authority forge sensor data?", tags=["PAPER"],
                 notes=N("""
         SAY: Why is this paper interesting? One question: can a malicious key authority forge sensor data? To see why it matters, here is the system the paper targets. Smart sensors on a production line produce readings. An aggregator in their area collects them. A cloud server analyses them. The KGC, the key generation centre, is a trusted authority that is involved only at the start: it publishes parameters and enrols each sensor once.
-        AUDIENCE SHOULD GET: who the four parties are, and the five phases: Setup, KeyGen, CertGen, signing and aggregation, verification. Colours are fixed for the whole talk: violet KGC, blue sensors, amber aggregator, slate cloud.
+        AUDIENCE SHOULD GET: who the four parties are, and the six algorithms in order: Setup, KeyGen, CertGen, Sign, AggSign, AggVerify. Colours are fixed for the whole talk: violet KGC, blue sensors, amber aggregator, slate cloud.
         Algorithm names are exactly the paper's: Setup, KeyGen, CertGen, Sign, AggSign, AggVerify.
         NOTE: parameters reach users through the cloud server (paper section I-A); we draw no other communication than the paper does.
         NEXT: why does the aggregator combine signatures at all?
@@ -57,12 +57,12 @@ def build(d):
                                                     {"text": "② KeyGen · ④ Sign", "size": 13, "color": T.SEN}])
     tb(s, 0.9, 5.07, 2.35, 0.3, "⋮", size=20, color=T.MUTED, align="c", check=False)
     party(s, "agg", 4.75, 4.2, 2.45, 1.0, text=[{"text": "Aggregator", "size": 18, "bold": True},
-                                                   {"text": "④ AggSign", "size": 14, "color": T.AGG}])
+                                                   {"text": "⑤ AggSign", "size": 14, "color": T.AGG}])
     party(s, "kgc", 5.2, 1.65, 2.9, 1.05, text=[{"text": "KGC", "size": 18, "bold": True},
                                                    {"text": "trusted authority", "size": 13, "color": T.MUTED},
                                                    {"text": "① Setup · ③ CertGen", "size": 14, "color": T.KGC}])
     party(s, "ver", 9.55, 4.1, 3.1, 1.25, text=[{"text": "Cloud server", "size": 18, "bold": True},
-                                                   {"text": "⑤ AggVerify", "size": 14, "color": T.VER}])
+                                                   {"text": "⑥ AggVerify", "size": 14, "color": T.VER}])
     chip(s, 9.6, 5.62, 1.45, 0.46, "1 · all n valid", "good", size=13, bold=True)
     chip(s, 11.2, 5.62, 1.45, 0.46, "0 · reject", "bad", size=13, bold=True)
     arrow(s, [(11.1, 5.35), (11.1, 5.62)], T.VER)
@@ -75,20 +75,20 @@ def build(d):
     tb(s, 2.15, 1.58, 2.9, 0.35, "③ certificate → sensor", size=15, color=T.KGC, bold=True)
     arrow(s, [(2.6, 3.55), (2.6, 2.45), (5.2, 2.45)], T.SEN)
     tb(s, 2.8, 2.5, 2.3, 0.35, "② public key → KGC", size=15, color=T.SEN, bold=True)
-    # ④ sensors -> aggregator -> cloud
+    # ④ Sign output to the aggregator; ⑤ AggSign output to the cloud
     arrow(s, [(3.25, 3.89), (4.0, 3.89), (4.0, 4.45), (4.75, 4.45)], T.SEN)
     arrow(s, [(3.25, 4.69), (4.75, 4.69)], T.SEN)
     arrow(s, [(3.25, 5.74), (4.0, 5.74), (4.0, 4.95), (4.75, 4.95)], T.SEN)
     tb(s, 3.4, 3.45, 4.0, 0.35, "④ reading $m_{i}$ + signature $δ_{i}$", size=15, color=T.SEN, bold=True)
     arrow(s, [(7.2, 4.7), (9.55, 4.7)], T.AGG, lw=2.25)
-    tb(s, 7.62, 3.72, 1.9, 0.85, "④ n readings + 1 aggregate signature", size=14, color=T.AGG, bold=True)
+    tb(s, 7.62, 3.72, 1.9, 0.85, "⑤ n readings + 1 aggregate signature", size=14, color=T.AGG, bold=True)
     tb(s, 7.62, 4.78, 1.9, 0.3, "over the Internet", size=12.5, color=T.MUTED)
     # phase strip
     xs = 0.6
-    for label, k in (("① Setup · KGC", "kgc"), ("② KeyGen · sensor", "sen"), ("③ CertGen · KGC", "kgc"),
-                     ("④ Sign · AggSign", "agg"), ("⑤ AggVerify · cloud", "ver")):
-        chip(s, xs, 6.38, 2.3, 0.5, label, k, size=15, bold=True)
-        xs += 2.4575
+    for label, who, k in (("① Setup", "KGC", "kgc"), ("② KeyGen", "sensor", "sen"), ("③ CertGen", "KGC", "kgc"),
+                          ("④ Sign", "sensor", "sen"), ("⑤ AggSign", "aggregator", "agg"), ("⑥ AggVerify", "cloud", "ver")):
+        chip(s, xs, 6.3, 1.938, 0.6, [{"text": label, "size": 15, "bold": True}, {"text": who, "size": 12, "color": T.MUTED}], k)
+        xs += 2.038
 
     # ------------------------------------------------------------------ 3. aggregation
     s = d.slide("Part I · Why aggregate?", "One verification decision instead of n", tags=["PAPER"], notes=N("""

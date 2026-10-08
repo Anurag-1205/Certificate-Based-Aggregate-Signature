@@ -15,12 +15,12 @@ IF ASKED 'what is your contribution?': the attack and the repair are the paper's
 Tags: PAPER
 
 SAY: Why is this paper interesting? One question: can a malicious key authority forge sensor data? To see why it matters, here is the system the paper targets. Smart sensors on a production line produce readings. An aggregator in their area collects them. A cloud server analyses them. The KGC, the key generation centre, is a trusted authority that is involved only at the start: it publishes parameters and enrols each sensor once.
-AUDIENCE SHOULD GET: who the four parties are, and the five phases: Setup, KeyGen, CertGen, signing and aggregation, verification. Colours are fixed for the whole talk: violet KGC, blue sensors, amber aggregator, slate cloud.
+AUDIENCE SHOULD GET: who the four parties are, and the six algorithms in order: Setup, KeyGen, CertGen, Sign, AggSign, AggVerify. Colours are fixed for the whole talk: violet KGC, blue sensors, amber aggregator, slate cloud.
 Algorithm names are exactly the paper's: Setup, KeyGen, CertGen, Sign, AggSign, AggVerify.
 NOTE: parameters reach users through the cloud server (paper section I-A); we draw no other communication than the paper does.
 NEXT: why does the aggregator combine signatures at all?
 IF ASKED 'what is a KGC?': the key generation centre, called a trusted authority (TA) in the paper. It has a master secret key and issues certificates.
-20-MINUTE ROUTE: KEEP, quick (45 s): name the four parties and the five phases.
+20-MINUTE ROUTE: KEEP, quick (45 s): name the four parties and the six algorithms in order.
 
 
 ## Slide 3: One verification decision instead of n
@@ -59,7 +59,7 @@ IF ASKED 'is the Postbank case evidence about CBAS?' (professor question 11): no
 20-MINUTE ROUTE: KEEP (1 min): the threat and the three questions.
 
 
-## Slide 6: Six algorithms, five phases, four parties
+## Slide 6: Six algorithms, four parties
 
 Tags: PAPER
 
@@ -413,10 +413,21 @@ NEXT STEPS, as questions only: does the repaired scheme have weaknesses of its o
 16. Why does the paper's formula differ from the implementation? We compare against the paper's own printed verification equation; its Table III row equals Verma's, which fits Verma's equation, not this one. How it arose we do not know.
 17. Does the discrepancy invalidate the construction? No; cost rows only.
 18. Reproduction versus original contribution? Reproduction: re-running the paper's attack and claims. Original: results the paper does not contain: the ablation, the recount, the caching test, the measurements.
-20-MINUTE ROUTE: KEEP (45 s): three things to remember, then stop.
+20-MINUTE ROUTE: KEEP (45 s): three things to remember.
 
 
-## Slide 32: Thank you (the talk ends here)
+## Slide 32: What remains for the final presentation
+
+SAY FIRST: Today we reproduced the paper's attack, tested its repair, and audited its cost claims. For the final presentation we plan to go one step further and test the repaired scheme itself. Four pieces of work.
+THE FOUR ITEMS: One, faster verification: does batching and precomputation (multi-scalar multiplication, cached signer data) change the cost comparison when both schemes get exactly the same treatment? Two, the aggregator in practice: what happens to availability when one signature in a batch is bad, and can the faulty signature be located? Three, a second look at the attack: is the paper's attack the weakest one against Verma's scheme, and which change in the repair closes which door? Four, open analysis: nonce reuse on sensors, and the paper's forward-security claim, which we have not examined yet.
+TAKEAWAY: Next we move from reproducing the paper to testing the repaired scheme itself.
+STATUS (for you, not for the slide; from PRESENTATION_2_FINAL.md on main): items one to three already have code, tests and write-ups in the repository (OPTIMIZATION.md, AGGREGATOR.md, KEYONLY_FORGERY.md). Item four is not started. Optional if time allows: the bandwidth cost of the aggregate, and a small MQTT simulation.
+IF PRESSED about results for items one to three: say honestly that the code exists and the results will be presented in the final talk. Do not improvise numbers or claims today; today's claims are the ones on the earlier slides.
+NEXT: Thank you and questions.
+20-MINUTE ROUTE: KEEP, quick (30 s): read the four headings, then stop.
+
+
+## Slide 33: Thank you (the talk ends here)
 
 STOP HERE. The main presentation ends on this slide.
 SAY: Thank you. I am happy to take questions.
@@ -425,7 +436,7 @@ WHICH BACKUP FOR WHICH QUESTION: the full attack algebra: B3. Both complete sche
 The Q&A preparation for the 18 likely questions is in the notes of slide 31.
 
 
-## Slide 33: Appendix divider (backup, only if asked)
+## Slide 34: Appendix divider (backup, only if asked)
 
 BACKUP SLIDES. Use only if a question calls for them; do not present them as part of the talk.
 B1 and B2: the complete Verma and Qiao schemes. B3: the full attack derivation. B4: correctness of aggregate verification. B5: the two adversaries and the paper's proof, which we did not audit. B6: why T_i is hashed into both H_1 and H_2. B7: the complete operation-count table. B8: caching and precomputation in full. B9: benchmark method and the P-256 gap. B10: tests and reproducibility. B11 and B12: captured demo output, if the terminal fails.

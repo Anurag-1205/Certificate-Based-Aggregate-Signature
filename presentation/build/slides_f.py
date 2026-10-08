@@ -66,6 +66,28 @@ def build(d):
     takeaway(s, "Next, as questions only: does the repaired scheme have weaknesses of its own that its proof does not rule out in practice?", size=17.5)
     cue(s, "3 things to remember.")
 
+    # ------------------------------------------------------------------ 32. what remains for the final presentation
+    s = d.slide("Part VII · What comes next", "What remains for the final presentation", tags=[], notes=N("""
+        SAY FIRST: Today we reproduced the paper's attack, tested its repair, and audited its cost claims. For the final presentation we plan to go one step further and test the repaired scheme itself. Four pieces of work.
+        THE FOUR ITEMS: One, faster verification: does batching and precomputation (multi-scalar multiplication, cached signer data) change the cost comparison when both schemes get exactly the same treatment? Two, the aggregator in practice: what happens to availability when one signature in a batch is bad, and can the faulty signature be located? Three, a second look at the attack: is the paper's attack the weakest one against Verma's scheme, and which change in the repair closes which door? Four, open analysis: nonce reuse on sensors, and the paper's forward-security claim, which we have not examined yet.
+        TAKEAWAY: Next we move from reproducing the paper to testing the repaired scheme itself.
+        STATUS (for you, not for the slide; from PRESENTATION_2_FINAL.md on main): items one to three already have code, tests and write-ups in the repository (OPTIMIZATION.md, AGGREGATOR.md, KEYONLY_FORGERY.md). Item four is not started. Optional if time allows: the bandwidth cost of the aggregate, and a small MQTT simulation.
+        IF PRESSED about results for items one to three: say honestly that the code exists and the results will be presented in the final talk. Do not improvise numbers or claims today; today's claims are the ones on the earlier slides.
+        NEXT: Thank you and questions.
+    """))
+    items = [("Faster verification", "Does batching and precomputation change the cost comparison, if both schemes get the same treatment?"),
+             ("The aggregator in practice", "What happens when one signature in a batch is bad, and can the faulty one be found?"),
+             ("A second look at the attack", "Is the paper's attack the weakest one against Verma's scheme? Which change in the repair closes which door?"),
+             ("Open analysis", "Nonce reuse on sensors, and the paper's forward-security claim.")]
+    for i, (head, q) in enumerate(items):
+        y = 1.7 + i * 1.05
+        box(s, 0.6, y, 12.13, 0.95, fill=T.WHITE, line=T.RULE, lw=1.25, radius=0.1)
+        box(s, 0.6, y, 0.12, 0.95, fill=T.INK, line=None, radius=0.05)
+        tb(s, 0.95, y + 0.1, 11.6, 0.4, head, size=20, bold=True, font=T.F_MATH)
+        tb(s, 0.95, y + 0.52, 11.6, 0.38, q, size=16, color=T.MUTED)
+    tb(s, 0.6, 5.95, 12.1, 0.3, "If time allows: the bandwidth cost of the aggregate, and a small MQTT simulation of the sensor-to-cloud path.", size=14, color=T.MUTED, check=False)
+    takeaway(s, "Next: from reproducing the paper to testing the repaired scheme itself.")
+
     # ------------------------------------------------------------------ thank you (the talk ends here)
     s = d.dark(notes=N("""
         STOP HERE. The main presentation ends on this slide.

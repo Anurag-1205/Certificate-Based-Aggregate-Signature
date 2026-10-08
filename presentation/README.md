@@ -4,7 +4,7 @@ Untracked working folder. Nothing under `src/`, `tests/` or `bench/` was modifie
 
 | File | What it is |
 |---|---|
-| `CBAS_Interim_Presentation.pptx` | The deck: 31 main slides, a Thank You slide (the talk ends there), an appendix divider, backup slides B1-B12. Speaker notes on every slide; 12 small presenter cues. |
+| `CBAS_Interim_Presentation.pptx` | The deck: 32 main slides (the last one lists the work remaining for the final presentation), a Thank You slide (the talk ends there), an appendix divider, backup slides B1-B12. Speaker notes on every slide; 12 small presenter cues. |
 | `CBAS_Interim_Presentation.pdf` | PDF export of the slides (rendered with LibreOffice; notes not included). |
 | `speaker_notes.md` | Every slide's speaker notes in one file, with the 18-question Q&A preparation under slide 31. |
 | `demo_fallback/` | Screenshots of the real captured output of the three demos (also on backup slides B11, B12). |
