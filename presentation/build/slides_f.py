@@ -1,4 +1,4 @@
-"""Part VII: conclusion (slide 31) and the backup slides B1-B10."""
+"""Part VII: conclusion (slide 26) and what remains (slide 27); thank you (28); appendix divider (29) and backups B1-B14."""
 import json
 import pathlib
 import textwrap
@@ -16,12 +16,24 @@ def N(s):
     return textwrap.dedent(s).strip()
 
 
+def tagged_card(s, x, y, w, h, tag, head, body=None, hsize=16, bsize=13.5):
+    box(s, x, y, w, h, fill=T.WHITE, line=T.RULE, lw=1.25, radius=0.08)
+    pill(s, x + 0.15, y + 0.12, 0.16 + 0.092 * len(tag), 0.26, tag, T.TAGS[tag], size=10)
+    paras = [{"text": head, "bold": True, "size": hsize, "after": 3}]
+    if body:
+        for k, line_ in enumerate(body.split("\n")):
+            paras.append({"text": line_, "size": bsize, "color": T.MUTED, "after": 4 if k == 0 and "\n" in body else 0})
+    tb(s, x + 0.15, y + 0.46, w - 0.3, h - 0.5, paras, lsp=0.95)
+
+
 def build(d):
-    # ------------------------------------------------------------------ 31. conclusion
-    s = d.slide("Part VII · Conclusion", "What we established, and what we did not", tags=["REPRODUCED", "OUR AUDIT"], notes=N("""
-        SAY: Three columns. Reproduced from the paper: the malicious-KGC forgery against Verma et al.'s scheme works, 8 of 8 on two backends; the same strategy fails against the repaired scheme, 0 of 8. Our own audit: the ablation shows that removing only the T_i binding brings the attack back; the cost row the paper gives for its own scheme does not follow from its own algorithm, about twice at n = 100, Fig. 4 repeats it, and timing agrees; and we tested the caching objection. Not established: the formal security of the repaired scheme, which is the paper's proof and which we have not audited; fidelity to Verma's original paper, because we implemented Qiao et al.'s description of it; and anything about scheme [6]'s real cost.
-        Leave with three things: how the KGC forges without r_2i or sk_i; why binding T_i changes the algebra; why the cost rows do not follow from the algorithm.
-        NEXT STEPS, as questions only: does the repaired scheme have weaknesses of its own that its proof does not rule out in practice? We do not present findings on that today.
+    # ------------------------------------------------------------------ 26. conclusion
+    s = d.slide("Part VII · Conclusion", "What we established, and what we did not", tags=["REPRODUCED", "OUR AUDIT", "EXPERIMENT"], notes=N("""
+        SAY: Three columns. Reproduced from the paper: the malicious-KGC forgery against Verma et al.'s scheme works, 8 of 8 on two backends; the same strategy fails against the repaired scheme, 0 of 8. Our own audit: the ablation shows that removing only the T_i binding brings the attack back; the cost row the paper gives for its own scheme does not follow from its own equation, about twice at n = 100, and our timing agrees. Not established: the formal security of the repaired scheme, which is the paper's proof and which we have not audited; fidelity to Verma's original paper, because we implemented Qiao et al.'s description of it; and the paper's absolute timings, because we compare ratios only.
+        Leave with three things: how the KGC forges without r_2i or sk_i; why binding T_i changes the algebra; why the cost row does not follow from the equation.
+        TIMING LINE: three setups, 11 runs in all. The per-signer cost of the repaired scheme against Verma's is 2.12 to 2.37 as medians of the three setups (1.99 to 2.48 across all 11 runs); the printed rows imply 1.00. Detail: backup B14.
+        IF ASKED about scheme [6]: backup B13. We have not implemented or verified [6] and make no claim about its real speed.
+        NEXT: what remains for the final presentation.
         ---- Q&A PREPARATION ----
         1. Why does the KGC not need r_2i? The new nonce is v'r_2i/v; the attacker only has to produce a commitment and a response that are consistent, and linearity guarantees that. It never needs the value itself.
         2. How does alpha help? It packages the secret-bearing part so it can be rescaled by v'.
@@ -47,12 +59,12 @@ def build(d):
         "The same strategy fails against Qiao's repaired scheme: 0 / 8"]),
         ("OUR AUDIT", "Our original audit", [
             "Removing only the $T_{i}$ binding brings the attack back: 8 / 8",
-            "Table III's AggVerify row does not follow from the algorithm: about ×2 at n = 100; Fig. 4 repeats it",
-            "Timing: per-signer ratio 2.12 – 2.37, where the printed rows imply 1.00"]),
+            "The paper's AggVerify cost row does not follow from its own equation: about ×2 at n = 100",
+            "Timing on 3 setups: per-signer ratio 2.12 – 2.37, where the printed rows imply 1.00"]),
         ("PAPER", "Not established", [
             "Formal security of the repaired scheme: the paper's proof, not audited",
             "Fidelity to Verma's original paper: we implemented Qiao's description",
-            "Anything about scheme [6]'s real cost"])]
+            "The paper's absolute timings: we compare ratios only"])]
     for i, (tag, head, items) in enumerate(cols):
         x = 0.6 + i * 4.1
         c = T.TAGS[tag] if i < 2 else T.MUTED
@@ -61,17 +73,17 @@ def build(d):
         tb(s, x + 0.2, 2.05, 3.55, 0.4, head, size=19, bold=True, font=T.F_MATH)
         tb(s, x + 0.2, 2.6, 3.55, 2.6, [{"text": t, "after": 9} for t in items], size=16.5, bullets=True, lsp=0.97)
     for i, t in enumerate(["① how the KGC forges without $r_{2i}$ or $sk_{i}$", "② why binding $T_{i}$ changes the algebra",
-                           "③ why the cost rows do not follow from the algorithm"]):
+                           "③ why the cost row does not follow from the equation"]):
         chip(s, 0.6 + i * 4.1, 5.42, 3.93, 0.6, t, "plain", size=15, bold=True)
-    takeaway(s, "Next, as questions only: does the repaired scheme have weaknesses of its own that its proof does not rule out in practice?", size=17.5)
+    takeaway(s, "We reproduced the paper's attack, tested what in its repair stops it, and recounted its cost claim.", size=18.5)
     cue(s, "3 things to remember.")
 
-    # ------------------------------------------------------------------ 32. what remains for the final presentation
+    # ------------------------------------------------------------------ 27. what remains for the final presentation
     s = d.slide("Part VII · What comes next", "What remains for the final presentation", tags=[], notes=N("""
         SAY FIRST: Today we reproduced the paper's attack, tested its repair, and audited its cost claims. For the final presentation we plan to go one step further and test the repaired scheme itself. Four pieces of work.
         THE FOUR ITEMS: One, faster verification: does batching and precomputation (multi-scalar multiplication, cached signer data) change the cost comparison when both schemes get exactly the same treatment? Two, the aggregator in practice: what happens to availability when one signature in a batch is bad, and can the faulty signature be located? Three, a second look at the attack: is the paper's attack the weakest one against Verma's scheme, and which change in the repair closes which door? Four, open analysis: nonce reuse on sensors, and the paper's forward-security claim, which we have not examined yet.
         TAKEAWAY: Next we move from reproducing the paper to testing the repaired scheme itself.
-        STATUS (for you, not for the slide; from PRESENTATION_2_FINAL.md on main): items one to three already have code, tests and write-ups in the repository (OPTIMIZATION.md, AGGREGATOR.md, KEYONLY_FORGERY.md). Item four is not started. Optional if time allows: the bandwidth cost of the aggregate, and a small MQTT simulation.
+        STATUS (for you, not for the slide; from PRESENTATION_2_FINAL.md on main): items one to three already have code, tests and write-ups in the repository (OPTIMIZATION.md, AGGREGATOR.md, KEYONLY_FORGERY.md). Item four is not started.
         IF PRESSED about results for items one to three: say honestly that the code exists and the results will be presented in the final talk. Do not improvise numbers or claims today; today's claims are the ones on the earlier slides.
         NEXT: Thank you and questions.
     """))
@@ -80,12 +92,11 @@ def build(d):
              ("A second look at the attack", "Is the paper's attack the weakest one against Verma's scheme? Which change in the repair closes which door?"),
              ("Open analysis", "Nonce reuse on sensors, and the paper's forward-security claim.")]
     for i, (head, q) in enumerate(items):
-        y = 1.7 + i * 1.05
-        box(s, 0.6, y, 12.13, 0.95, fill=T.WHITE, line=T.RULE, lw=1.25, radius=0.1)
-        box(s, 0.6, y, 0.12, 0.95, fill=T.INK, line=None, radius=0.05)
-        tb(s, 0.95, y + 0.1, 11.6, 0.4, head, size=20, bold=True, font=T.F_MATH)
-        tb(s, 0.95, y + 0.52, 11.6, 0.38, q, size=16, color=T.MUTED)
-    tb(s, 0.6, 5.95, 12.1, 0.3, "If time allows: the bandwidth cost of the aggregate, and a small MQTT simulation of the sensor-to-cloud path.", size=14, color=T.MUTED, check=False)
+        y = 1.7 + i * 1.13
+        box(s, 0.6, y, 12.13, 1.03, fill=T.WHITE, line=T.RULE, lw=1.25, radius=0.1)
+        box(s, 0.6, y, 0.12, 1.03, fill=T.INK, line=None, radius=0.05)
+        tb(s, 0.95, y + 0.12, 11.6, 0.4, head, size=21, bold=True, font=T.F_MATH)
+        tb(s, 0.95, y + 0.58, 11.6, 0.38, q, size=17, color=T.MUTED)
     takeaway(s, "Next: from reproducing the paper to testing the repaired scheme itself.")
 
     # ------------------------------------------------------------------ thank you (the talk ends here)
@@ -93,8 +104,8 @@ def build(d):
         STOP HERE. The main presentation ends on this slide.
         SAY: Thank you. I am happy to take questions.
         Do NOT advance into the appendix unless a question needs it. Backup slides are for questions only. Jump to them by slide number or from the list on the next slide.
-        WHICH BACKUP FOR WHICH QUESTION: the full attack algebra: B3. Both complete schemes: B1 and B2. Correctness of aggregate verification: B4. The adversaries and the paper's proof (not audited by us): B5. Why T_i is in both hashes: B6. The complete operation counts: B7. Caching objections in full: B8. Benchmark method and the P-256 gap: B9. Tests and commands: B10. The terminal demo failed or took too long: B11 (Demos 1 and 2) and B12 (Demo 3).
-        The Q&A preparation for the 18 likely questions is in the notes of slide 31.
+        WHICH BACKUP FOR WHICH QUESTION: the full attack algebra: B3. Both complete schemes: B1 and B2. Correctness of aggregate verification: B4. The adversaries and the paper's proof (not audited by us): B5. Why T_i is in both hashes: B6. The complete operation counts: B7. Caching objections in full: B8. Benchmark method and the P-256 gap: B9. Tests and commands: B10. The terminal demo failed or took too long: B11 (Demos 1 and 2) and B12 (Demo 3). The paper's Figs. 3 to 5 or scheme [6]: B13. The timing measurements: B14.
+        The Q&A preparation for the 18 likely questions is in the notes of slide 26.
     """))
     tb(s, 0.8, 2.55, 11.7, 1.6, "Thank you", size=84, color="#FFFFFF", bold=True, font=T.F_MATH, align="c", check=False)
     tb(s, 0.8, 4.35, 11.7, 0.8, "Questions?", size=38, color="#9FB3C8", align="c", check=False)
@@ -102,7 +113,7 @@ def build(d):
     # ------------------------------------------------------------------ appendix divider
     s = d.dark(bg="#34414F", notes=N("""
         BACKUP SLIDES. Use only if a question calls for them; do not present them as part of the talk.
-        B1 and B2: the complete Verma and Qiao schemes. B3: the full attack derivation. B4: correctness of aggregate verification. B5: the two adversaries and the paper's proof, which we did not audit. B6: why T_i is hashed into both H_1 and H_2. B7: the complete operation-count table. B8: caching and precomputation in full. B9: benchmark method and the P-256 gap. B10: tests and reproducibility. B11 and B12: captured demo output, if the terminal fails.
+        B1 and B2: the complete Verma and Qiao schemes. B3: the full attack derivation. B4: correctness of aggregate verification. B5: the two adversaries and the paper's proof, which we did not audit. B6: why T_i is hashed into both H_1 and H_2. B7: the complete operation-count table. B8: caching and precomputation in full. B9: benchmark method and the P-256 gap. B10: tests and reproducibility. B11 and B12: captured demo output, if the terminal fails. B13: the paper's Figs. 3 to 5 and scheme [6]. B14: the timing measurements.
         Each backup slide has its own speaker notes.
     """))
     tb(s, 0.8, 0.9, 9, 0.35, "BACKUP · ONLY IF ASKED", size=14, color="#B7C3D0", bold=True, spc=140, check=False)
@@ -110,10 +121,11 @@ def build(d):
     items = ["B1  The complete Verma scheme", "B2  The complete Qiao scheme", "B3  The full malicious-KGC derivation",
              "B4  Correctness of aggregate verification", "B5  Security models and the paper's proof", "B6  Why $T_{i}$ is in both hashes",
              "B7  The complete operation-count table", "B8  Caching and precomputation", "B9  Benchmark methodology",
-             "B10 Testing and reproducibility", "B11 Demo fallback: Demos 1 and 2", "B12 Demo fallback: Demo 3"]
+             "B10 Testing and reproducibility", "B11 Demo fallback: Demos 1 and 2", "B12 Demo fallback: Demo 3",
+             "B13 The paper's figures and scheme [6]", "B14 Timing: measured ratios"]
     for i, t_ in enumerate(items):
-        col, row = divmod(i, 6)
-        tb(s, 0.8 + col * 6.1, 2.75 + row * 0.62, 5.8, 0.5, t_, size=19, color="#E4EAF0")
+        col, row = divmod(i, 7)
+        tb(s, 0.8 + col * 6.1, 2.6 + row * 0.58, 5.8, 0.5, t_, size=19, color="#E4EAF0")
 
     # ------------------------------------------------------------------ B1
     s = d.slide("Backup · Verma et al.", "B1 · The complete Verma scheme", tags=["PAPER"], appendix="B1", title_size=28, notes=N("""
@@ -183,7 +195,7 @@ def build(d):
     s = d.slide("Backup · Correctness", "B4 · Why aggregate verification accepts honest signatures", tags=["PAPER"], appendix="B4", title_size=28, notes=N("""
         Both derivations are one-line substitutions. For Qiao et al., c_i = r_i + s h^i_0 and R_i = r_i P, T_i = t_i P, pk_i = sk_i P. For Verma et al., c_i P = R_1i + h^i_0 P_TA and R_i = R_1i + r_2i P.
         These are the paper's own derivations (section V-A for Qiao et al.). Our tests check correctness for n up to 17 and tamper rejection on both backends.
-        The operation count of the Qiao equation is on slide 26; this slide is only about correctness.
+        The operation count of the Qiao equation is on slide 25 (scalar multiplications, term by term) and in backup B7; this slide is only about correctness.
     """))
     tb(s, 0.6, 1.65, 6, 0.3, "QIAO ET AL.", size=12, color=T.GOOD, bold=True, spc=100, check=False)
     tb(s, 0.6, 2.0, 12.1, 2.1, [
@@ -263,7 +275,7 @@ def build(d):
 
     # ------------------------------------------------------------------ B8
     s = d.slide("Backup · Caching", "B8 · Caching and precomputation, in full", tags=["OUR AUDIT"], appendix="B8", title_size=28, notes=N("""
-        Full table behind the caching slide. 'Cache h_0' stores the hash h^i_0 per signer: derived by subtracting one hash per signer from each scheme (the repository's test covers this objection). 'Cache C_i' stores the per-signer point C_i = R_i + h^i_0 P_TA (for Verma, h^i_0 P_TA); the counts in the last row were measured by our audit script on both backends and are not yet a repository test.
+        Full table behind the caching note on slide 24. 'Cache h_0' stores the hash h^i_0 per signer: derived by subtracting one hash per signer from each scheme (the repository's test covers this objection). 'Cache C_i' stores the per-signer point C_i = R_i + h^i_0 P_TA (for Verma, h^i_0 P_TA); the counts in the last row were measured by our audit script on both backends and are not yet a repository test.
         Under every row the two schemes still differ, and aggregate verification stays above the printed n + 2 scalar multiplications.
         Folding: sum of u_i R_i + (sum of u_i h^i_0) P_TA equals (sum of u_i c_i) P, a single multiplication, but c_i is the signer's secret certificate, unavailable to a verifier; the identity itself is checked by a repository test.
         Multi-scalar multiplication (Straus, Pippenger) lowers the cost of a sum of products but is a different cost model and applies equally to both schemes.
@@ -364,3 +376,38 @@ def build(d):
     image(s, DF / "demo3_ablation.png", 0.6, 1.75, w=12.13)
     tb(s, 0.6, 5.55, 12.1, 0.8, [{"text": "8 forgery-restored cases (4 messages × 2 backends) + 2 checks that the ablated variant is still a working scheme", "size": 16}], size=16)
     tb(s, 0.6, 6.45, 12.1, 0.4, "Actual captured stdout, 2026-10-07. Long test ids are shortened with an ellipsis.", size=12.5, color=T.MUTED)
+
+    # ------------------------------------------------------------------ B13: the paper's figures and scheme [6] (was a main slide)
+    s = d.slide("Backup · Scheme [6]", "B13 · The paper's figures and its comparison with [6]", tags=["PAPER", "OUR AUDIT"], appendix="B13", title_size=28, notes=N("""
+        USE THIS only if asked about the paper's Figs. 3 to 5 or about scheme [6]; the main talk does not use them.
+        SAY FIRST: We recomputed the paper's Figs. 3, 4 and 5 from its tables and Table IV. Every value printed on Figs. 3 and 4 reproduces exactly; Fig. 5 has no printed values, and its two lines end where the formulas say, about 63 and 126 ms at n = 500 (we read the endpoints from the plot rather than extracting its data). So the figures are calculations from the tables, not independent measurements, and they carry the table's count.
+        THE CHART MEANS: Grey: the repaired scheme as printed. The wide pale line: the paper's own row for scheme [6], the earlier pairing-free scheme it compares against. The dashed line: the repaired scheme recounted from its algorithm; it lies on top of [6]'s line. At n = 100 that is 25.324 against 25.319 ms: five microseconds apart, one point addition.
+        WHAT FOLLOWS, AND ONLY THAT: using the paper's own numbers for [6], the roughly 49 percent computational advantage drawn in its Fig. 4 (13.224 against 25.814 ms in total) is not supported. The bandwidth advantage over [6], n group elements against 2n (Table VI), is unaffected.
+        SAY ALOUD: We have not implemented or verified scheme [6]. We make no claim about [6]'s real speed; its row is the paper's, taken as printed. On one row the paper is generous to itself in the opposite direction: AggSign (backup B7).
+        IF ASKED 'is [6]'s AggSign cost overstated too?': Table VI shows its aggregate keeps 2n group elements, which suggests so, but we have not read [6].
+    """))
+    image(s, FIG / "fig_fig5_recomputed.png", 0.6, 1.65, w=6.5)
+    tagged_card(s, 7.35, 1.7, 5.38, 1.2, "OUR AUDIT", "Figs. 3–5 are table formulas × Table IV", "Figs. 3 and 4: every label reproduces exactly. Fig. 5: line ends match, read from the plot.", hsize=15.5, bsize=12.5)
+    tagged_card(s, 7.35, 3.0, 5.38, 1.4, "PAPER", "Using the paper's own row for [6]",
+                "25.324 ms (Qiao recount) vs 25.319 ms ([6]) at n = 100. The ≈ 49% advantage in Fig. 4 (13.224 vs 25.814 ms) is not supported.", hsize=15.5, bsize=13.5)
+    box(s, 7.35, 4.52, 5.38, 0.8, fill=T.AGG_T, line=T.AGG, lw=1.5, radius=0.08,
+        text="We have not verified scheme [6]. No claim about its real speed.", size=15.5, bold=True, color=T.INK)
+    tb(s, 7.35, 5.45, 5.38, 0.5, "Unchanged: bandwidth, $n|G|$ vs $2n|G|$ (paper Table VI).", size=14.5, color=T.MUTED)
+    takeaway(s, "Only from the paper's own numbers: its computational advantage over [6] disappears; its bandwidth advantage does not.", size=18)
+
+    # ------------------------------------------------------------------ B14: measured time (was a main slide)
+    s = d.slide("Backup · Timing", "B14 · Measured time is consistent with the higher cost", tags=["EXPERIMENT"], appendix="B14", title_size=28, notes=N("""
+        USE THIS if asked 'did you measure it?', about the method, or about the P-256 gap. The main talk gives the result in one line on slide 26.
+        SAY FIRST: Counting is one instrument; timing is a second, independent one. We timed aggregate verification of both schemes for n from 50 to 500, fitted straight lines and compared the per-signer slopes.
+        THE CHARTS MEAN: Left, one machine, an Intel Xeon on Kaggle: Qiao's slope is 356 microseconds per signer and Verma's 168. The dotted red line is what Qiao would look like if its row equalled Verma's, as Table III says; the measured points are nowhere near it. Right, all 11 recorded runs on three configurations: every ratio lies between 1.99 and 2.48, never near the 1.00 the printed rows require; the medians of the three configurations are 2.12 to 2.37. Diamonds are the ratios predicted from the operation counts.
+        TAKEAWAY: Independent measurements are consistent with the higher cost: about twice Verma's, not equal. We compare ratios, because our curve, library and language differ from the paper's; we make no claim about the paper's absolute hardware timings.
+        METHOD (backup B9): the laptop's clock ramps about 2x under load, so the CPU is warmed first, workloads are interleaved, medians are taken, and runs with a poor fit are excluded from the median; the medians are the same with or without the exclusion.
+        THE P-256 GAP: the simple model predicts 1.99 on P-256 but measurement gives about 2.37. Our audit found why: real hash calls also serialise points, 8 per signer for Qiao and 2 for Verma, which is expensive in OpenSSL; pricing them predicts about 2.37 (three fresh repeats). An audit result, not yet a repository test; do not call it interpreter overhead.
+        LIMITS: three of four machine-and-backend combinations; the Xeon is one sweep; P-256 on one machine.
+        IF ASKED 'why is aggregate verification slower than n Ed25519 checks?': our aggregate verification makes about five ctypes calls per signer from Python; Ed25519 is one native call. Aggregation buys bandwidth, not verifier CPU.
+    """))
+    image(s, FIG / "fig_measured_vs_n.png", 0.6, 1.65, w=5.7)
+    image(s, FIG / "fig_ratio_runs.png", 7.03, 1.65, w=5.7)
+    tb(s, 0.6, 5.88, 12.1, 0.4, "P-256: pricing the real hash calls (point serialisation) lifts the prediction from 1.99 to ≈ 2.37 (our audit). Ratios only: absolute times are not comparable with the paper's.",
+       size=12.5, color=T.MUTED, lsp=0.95)
+    takeaway(s, "Counting and timing both point the same way: per-signer cost is about twice Verma's, not equal.", size=18.5)

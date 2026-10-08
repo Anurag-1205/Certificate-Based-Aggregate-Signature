@@ -92,55 +92,6 @@ NOTES = {
     NEXT: before measuring performance, why trust our implementation?
     IF ASKED 'what does the ablation prove?' (professor question 12): necessity of the T_i binding against this attack, everything else held fixed. Not sufficiency, not security. IF ASKED 'is that original?': yes for the ablation as a causal test; the attack and the repair are the paper's.
 """),
-25: N("""
-    SAY FIRST: We do not jump from '12.729 ms' to 'the paper is wrong'. We follow a chain, and every step can be checked on its own.
-    THE CHAIN MEANS: One, the paper's formula for aggregate verification. Two, a count of the operations in the paper's own printed verification equation, by an instrumented counter that also reproduces Verma's printed rows. Three, the paper's own cost model, its Table IV. Four, the expected time that follows: 12.729 ms printed against 25.324 ms at n = 100. Five, measured time on three configurations; we compare per-signer slopes of the two schemes. Six, the comparison: the printed rows imply a ratio of 1.00, the counts predict 1.99 to 2.14, measurement gives 2.12 to 2.37.
-    TAKEAWAY: Equation, count, cost, measurement. The colour bar on each box says whose it is: grey the paper's, magenta our audit, indigo an experiment.
-    NEXT: Step two, the count. A tracker in each slide's eyebrow line shows where we are.
-    IF ASKED 'could this be a convention difference?': the same convention applied to Verma's equation reproduces Verma's printed row; that is the calibration on the next slide.
-"""),
-26: N("""
-    SAY FIRST: Left, the paper's own verification equation, term by term. Right, what that count is, against what the paper prints.
-    THE TABLE MEANS: zP is one scalar multiplication. The sum of T_i is n minus 1 additions. The sum of u_i R_i is n scalar multiplications and n minus 1 additions; this term exists only in the repaired scheme, which is why n is in red. The master-key term is one multiplication. The sum of v_i pk_i is n multiplications. Combining the four terms: 3 additions. Total (2n+2) multiplications and 3n additions; per signer three hashes. Right: Sign has two hashes, not one, because the paper's own step (b) computes both v_i and u_i; single Verify is 4, 3, 3; AggVerify is (2n+2), 3n, 3n; and AggSign is no group operation at all.
-    TAKEAWAY: The paper's own equation needs two scalar multiplications per signer, not one. The calibration box is the key: the same counter reproduces Verma's printed rows exactly, so the discrepancy is in the printed row, not in the method.
-    On AggSign the paper overstates its own cost: that is in the paper's favour and we report it. Verma's printed Sign omits one point addition; negligible (backup B7).
-    NEXT: Is there any convention under which the printed row is right?
-    IF ASKED 'why does the paper's formula differ from the implementation?' (professor question 16): we compare against the paper's own printed verification equation (section V-A(6)); the implementation follows it term by term. Its Table III row equals Verma's row, which fits Verma's equation, not this one. How the row arose we do not know; the likeliest reading is that Verma's row was reused.
-"""),
-27: N("""
-    SAY FIRST: The strongest objection is that the verifier could precompute per-signer constants, so we tested it, and we say the result up front.
-    THE TABLE MEANS: With every per-signer constant cached, the repaired scheme's single verification drops to 3, 2, 2: exactly the printed Table II row. But under the same caching Verma's single verification drops too, to 2, 2, 1, so the two rows still cannot be identical. And the aggregate: with caching the repaired scheme still needs 2n+1 scalar multiplications, 201 at n = 100, against the printed n+2, which is 102. The hash count matches the printed 2n; the multiplication count does not.
-    TAKEAWAY: Caching reproduces the single-signature row, but aggregate verification still needs at least 2n+1 scalar multiplications, against the printed n+2.
-    NEXT: What does this mean in milliseconds?
-    IF ASKED about the other objections (professor question 14): folding the sum of u_i R_i into one multiplication is possible algebraically but needs the secret certificate c_i, which a verifier does not have. Multi-scalar multiplication is a different cost model that applies to both schemes; Table III is plainly a naive count. Both are in backup B8.
-    STATUS: the h_0 caching and folding objections are repository tests; the full-constant caching counts come from presentation/audit/verify_claims.py (both backends) and are not yet a repository test.
-"""),
-28: N("""
-    SAY FIRST: Take the paper's own unit costs and apply them to each count. The printed row gives 12.729 milliseconds, which is exactly the bar in the paper's own Fig. 4. The recount gives 25.324 milliseconds: a factor of 1.99.
-    THE CHART MEANS: Three bars. Grey: the printed row. Middle: the recount if the verifier caches every per-signer constant, 24.807, a factor of 1.95. Dark: the recount from the paper's algorithm. Per signer the cost goes from 125 to 251 microseconds under Table IV. These are model values, not measurements.
-    TAKEAWAY: This is not a one-off typo. The printed row agrees with Fig. 4, which was therefore computed from Table III, and disagrees with the printed verification equation.
-    NEXT: The same arithmetic against the other scheme in the paper's comparison.
-    IF ASKED 'does this invalidate the construction?' (professor question 17): no. The attack and repair results are separate from the cost rows; this affects the comparative efficiency claim only.
-    IF ASKED 'why does it matter?' (professor question 13): the paper's central comparative argument, secure and as cheap as the insecure scheme, rests on these tables, and its figures are computed from them.
-"""),
-29: N("""
-    SAY FIRST: We recomputed the paper's Figs. 3, 4 and 5 from its tables and Table IV. Every value printed on Figs. 3 and 4 reproduces exactly; Fig. 5 has no printed values, and its two lines end where the formulas say, about 63 and 126 ms at n = 500 (we read the endpoints from the plot rather than extracting its data).
-    THE CHART MEANS: Grey: the repaired scheme as printed. The wide pale line: the paper's own row for scheme [6]. The dashed line: the repaired scheme recounted from its algorithm; it lies on top of [6]'s line. At n = 100 that is 25.324 against 25.319 ms: one point addition apart.
-    TAKEAWAY: Only from the paper's own numbers: its roughly 49 percent computational advantage over [6], 13.224 against 25.814 ms in Fig. 4, is not supported; its bandwidth advantage, n group elements against 2n (Table VI), is unaffected.
-    SAY ALOUD: We have not implemented or verified scheme [6]. We make no claim about [6]'s real speed; its row is the paper's, taken as printed.
-    NEXT: Does a clock agree with the count?
-    IF ASKED 'is [6]'s AggSign overstated too?': Table VI shows its aggregate keeps 2n group elements, which suggests so, but we have not read [6].
-"""),
-30: N("""
-    SAY FIRST: Counting is one instrument; timing is a second, independent one. We timed aggregate verification of both schemes for n from 50 to 500, fitted straight lines and compared the per-signer slopes.
-    THE CHARTS MEAN: Left, one machine, an Intel Xeon on Kaggle: Qiao's slope is 356 microseconds per signer and Verma's 168. The dotted red line is what Qiao would look like if its row equalled Verma's, as Table III says; the measured points are nowhere near it. Right, all 11 recorded runs on three configurations: every ratio lies between 1.99 and 2.48, never near the 1.00 the printed rows require. Diamonds are the ratios predicted from the operation counts.
-    TAKEAWAY: Independent measurements are consistent with the higher cost: about twice Verma's, not equal. We compare ratios, because our curve, library and language differ from the paper's; we make no claim about the paper's absolute hardware timings.
-    METHOD (backup B9): the laptop's clock ramps about 2x under load, so the CPU is warmed first, workloads are interleaved, medians are taken, and runs with a poor fit are excluded from the median; the medians are the same with or without the exclusion.
-    THE P-256 GAP: the simple model predicts 1.99 on P-256 but measurement gives about 2.37. Our audit found why: real hash calls also serialise points, 8 per signer for Qiao and 2 for Verma, which is expensive in OpenSSL; pricing them predicts about 2.37 (three fresh repeats). An audit result, not yet a repository test; do not call it interpreter overhead.
-    LIMITS: three of four machine-and-backend combinations; the Xeon is one sweep; P-256 on one machine.
-    NEXT: What we established.
-    IF ASKED 'why is aggregate verification slower than n Ed25519 checks?': our aggregate verification makes about five ctypes calls per signer from Python; Ed25519 is one native call. Aggregation buys bandwidth, not verifier CPU.
-"""),
 }
 
 # 20-minute route: KEEP = give it its full time; QUICK = one or two sentences; SKIP = cover in one spoken sentence on the neighbouring slide
@@ -160,12 +111,11 @@ ROUTE = {
 17: "SKIP: mention T_i verbally on slide 18.", 18: "QUICK (45 s): only the three middle rows.",
 19: "KEEP (1 min 15 s): the key idea.", 20: "QUICK (30 s): show Target 2 as the screenshot (Backup B11).",
 21: "QUICK (30 s): say it together with slide 22.", 22: "KEEP (1 min 15 s): the three cards; Demo 3 only if time allows (Backup B12).",
-23: "QUICK (30 s): two backends, 221 tests, identical counts.", 24: "QUICK (30 s): the identical rows and the question.",
-25: "QUICK (30 s): the chain, once.", 26: "KEEP (1 min): the table and the calibration box.",
-27: "QUICK (30 s): caching explains the single row, not the aggregate row.", 28: "KEEP (45 s): the n = 100 bars.",
-29: "QUICK (45 s): the [6] caveat must still be said aloud.", 30: "KEEP (1 min): both charts.",
-31: "KEEP (45 s): three things to remember.",
-32: "KEEP, quick (30 s): read the four headings, then stop.",
+23: "QUICK (30 s): two backends, 221 tests, identical counts.",
+24: "KEEP (1 min 15 s): the two cards and the two bars; say 'model values, not measurements' aloud.",
+25: "KEEP, quick (45 s): the red extra term; Verma's equation counts to the printed row.",
+26: "KEEP (45 s): three things to remember.",
+27: "KEEP, quick (30 s): read the four headings, then stop.",
 }
 
 FALLBACK = {
@@ -176,7 +126,7 @@ FALLBACK = {
 
 def apply(prs):
     for i, sl in enumerate(prs.slides, 1):
-        if i > 32:
+        if i > 27:
             break
         if not sl.has_notes_slide:
             continue

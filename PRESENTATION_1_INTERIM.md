@@ -7,7 +7,7 @@ as your rehearsal sheet.
 - Deck: `presentation/CBAS_Interim_Presentation.pptx` (PDF beside it)
 - Full speaker notes, every slide: `presentation/speaker_notes.md` (also inside the .pptx)
 - Code checkpoint: git tag `presentation-1-interim` (commit `881b7b0`)
-- The main talk is **32 slides** (the last one is "What remains for the final presentation"), then **Thank You**, then **backup slides B1-B12**
+- The main talk is **27 slides** (the last one is "What remains for the final presentation"), then **Thank You**, then **backup slides B1-B14**
   that you open only if a question needs them.
 
 ## 1. The whole talk in one paragraph
@@ -133,12 +133,15 @@ secure.
 
 ## 6. Learn the performance audit in plain words
 
-The chain, which is also the shape of slide 25: **equation → count → cost → measurement.**
+The chain: **equation → count → cost → measurement.** It is the shape of the argument, but the main talk
+compresses it into **two slides (24: the claim against the recount; 25: where the extra cost comes from, term by term)**, and gives the timing result as one line on slide 26. The detail is in the
+backups: B7 (the full count table), B8 (caching), B9 (benchmark method and the P-256 gap), B13 (the paper's figures
+and scheme [6]) and B14 (the timing charts).
 
 1. **Paper formula.** Tables II and III print identical costs for Verma's scheme and
    for the repaired scheme, e.g. AggVerify `(n+2)Te + (n+1)Ta + 2nTh`. (`Te` = one scalar
    multiplication, `Ta` = one point addition, `Th` = one hash.)
-2. **Our count of the paper's own equation.**
+2. **Our count of the paper's own equation (slide 25 shows it term by term).**
    `zP = ΣT_i + Σu_iR_i + (Σu_ih_0^i)P_TA + Σv_ipk_i` has two multiplications per signer
    (`u_iR_i` and `v_ipk_i`). Total `(2n+2)Te + 3nTa + 3nTh`. Also: Sign has two hashes,
    single Verify is `4Te + 3Ta + 3Th`, and AggSign has no group operation at all
@@ -149,14 +152,14 @@ The chain, which is also the shape of slide 25: **equation → count → cost �
    At n = 100: **12.729 ms printed** (exactly the bar in the paper's own Fig. 4) against
    **25.324 ms recounted**, a factor of 1.99 (1.95 if the verifier caches every per-signer
    constant). These are model values, not measurements.
-5. **Caching objection (we raise it ourselves).** Caching reproduces the printed
+5. **Caching objection (one sentence on slide 24; full table in B8).** Caching reproduces the printed
    single-Verify row, but Verma's row drops too, and aggregate verification still needs
    at least `2n+1` scalar multiplications against the printed `n+2`.
-6. **Scheme [6].** Using the paper's own row for [6], our recount lands on it
+6. **Scheme [6] (backup B13 only; not in the main talk).** Using the paper's own row for [6], our recount lands on it
    (25.324 vs 25.319 ms), so the computational advantage drawn in Fig. 4 is not
    supported *by the paper's own numbers*. **We have not verified scheme [6]** and make no
    claim about its real speed. The bandwidth advantage (n vs 2n group elements) is untouched.
-7. **Measurement.** Per-signer slope ratio, Qiao ÷ Verma: 2.12 to 2.37 on three
+7. **Measurement (one line on slide 26; charts in B14).** Per-signer slope ratio, Qiao ÷ Verma: 2.12 to 2.37 on three
    configurations (11 recorded runs: 1.99 to 2.48), where the printed rows imply 1.00.
    The simple model predicts 1.99 on P-256 but we measure about 2.37; pricing the real
    hash calls (which also serialise points) predicts about 2.37 (our audit).
@@ -218,33 +221,33 @@ Tags are the small coloured chips at the top right of each slide.
 |---|---|---|---|
 | 23 | Built and checked | "One interface, two independent groups; 62 self-test checks, 221 tests; identical counts on both." | quick |
 
-### Part VI: performance audit
+### Part VI: the cost claim
 
 | # | Message | Say first | 20-min |
 |---|---|---|---|
-| 24 | The claim | "The paper prints identical costs for the broken and the repaired scheme. Can that be right?" | quick |
-| 25 | The chain | "Equation, count, cost, measurement. We never jump from 12.729 ms to 'the paper is wrong'." | quick |
-| 26 | The recount | Count the terms; two multiplications per signer; point at the calibration box. | keep |
-| 27 | Caching | "We raise the obvious objection ourselves: caching explains the single row, not the aggregate." | quick |
-| 28 | n = 100 | "12.729 ms is the paper's own Fig. 4 bar; the recount is 25.324 ms: not a one-off typo." | keep |
-| 29 | Figures and [6] | State the caveat aloud: "We have not verified scheme [6]." | quick |
-| 30 | Measurements | "Counting and timing both point the same way: about twice Verma's cost." | keep |
+| 24 | Is the repaired scheme really as cheap as Verma's? | "The paper prints the same cost as Verma's scheme. Counting its own verification equation gives two scalar multiplications per signer, not one: 12.729 ms printed against 25.324 ms at n = 100, about twice." Say aloud: **model values, not measurements.** One sentence on caching (24.807 ms, still about twice). Point to B7 / B8 if pressed. (cue: model values, not measurements) | keep (1 min 15 s) |
+| 25 | Where the extra cost comes from | "Here are the two verification equations, term by term, with the scalar multiplications under each. Verma's equation counts to n+2, exactly the printed row. The repaired equation has one more term, `Σ u_i R_i`, in red: n more. So 2n+2." Point at the red box. Additions and hashes are in B7. | quick (45 s) |
 
-### Part VII: conclusion
+### Part VII: conclusion and what comes next
 
 | # | Message | Say first | 20-min |
 |---|---|---|---|
-| 31 | Established / not | Reproduced, our audit, not established. Say the three things to remember. | keep |
-| 32 | What remains for the final presentation | "Today we reproduced and audited; next we test the repaired scheme itself." Read the four headings: faster verification, the aggregator in practice, a second look at the attack, open analysis (nonce reuse, forward-security claim). Do not give results for these today. | keep, quick |
-| 33 | Thank you | **Stop.** Do not advance into the appendix unless asked. | keep |
+| 26 | Established / not | Reproduced, our audit (the timing result is one line here: 2.12 to 2.37, where the printed rows imply 1.00), not established. Say the three things to remember. (cue: 3 things to remember) | keep |
+| 27 | What remains for the final presentation | "Today we reproduced and audited; next we test the repaired scheme itself." Read the four headings: faster verification, the aggregator in practice, a second look at the attack, open analysis (nonce reuse, forward-security claim). Do not give results for these today. | keep, quick |
+| 28 | Thank you | **Stop.** Do not advance into the appendix unless asked. | keep |
+
+**Where the old cost slides went.** The earlier version had seven cost slides. Their content is now slides 24 and 25 plus
+backups: the full count table is B7, caching is B8, the method is B9, "the paper's figures and scheme [6]" is **B13**, and
+"measured time" is **B14**. Open B13 or B14 only if asked ("what about [6]?", "did you measure it?").
 
 ## 8. Timing and the 20-minute route
 
-- **Full talk: about 30 minutes**, including the three live demos (about 4 to 5 minutes
-  in total), before questions.
-- **20-minute route (about 20 minutes):** skip 3, 6 and 17 (cover them in one sentence
+- **Full talk: about 25 minutes** (an estimate: the cost section is now one slide instead of seven; time
+  yourself once), including the three live demos (about 4 to 5 minutes in total), before questions.
+- **20-minute route:** the per-slide times in the notes add up to about 18 minutes of speaking, which
+  leaves slack for a demo that runs long. Skip 3, 6 and 17 (cover them in one sentence
   on the neighbouring slide); present 12 to 14 together in about two minutes; show
-  Demo 2 from the screenshot; keep 1, 2, 5, 8, 10, 11, 15, 16, 19, 22, 26, 28, 30, 31, 32 (quick);
+  Demo 2 from the screenshot; keep 1, 2, 5, 8, 10, 11, 15, 16, 19, 22, 24, 25 (quick), 26, 27 (quick);
   everything else quickly. No slide is deleted; the route is marked in each slide's
   speaker notes under "20-MINUTE ROUTE".
 
@@ -275,7 +278,7 @@ three names, Research in Information Security and IIIT Hyderabad; no date is sho
 ## 10. Presenter cues (the small yellow notes)
 
 Twelve slides carry a small note labelled "PRESENTER CUE" at the top right: slides
-10, 11, 12, 13, 14, 15, 16, 19, 20, 22, 25 and 31. They are reminders for you, not
+10, 11, 12, 13, 14, 15, 16, 19, 20, 22, 24 and 26. They are reminders for you, not
 audience content. Slides 16 and 20 click through to B11 in slideshow mode. To produce a
 version without them: `/path/to/deckenv/bin/python presentation/build/build_deck.py --no-cues`.
 
@@ -301,7 +304,7 @@ version without them: `/path/to/deckenv/bin/python presentation/build/build_deck
 7. **"Could caching explain the discrepancy?"** It explains the single-Verify row but not
    the aggregate row, and it changes Verma's row too; aggregate verification still needs at
    least `2n+1` scalar multiplications against the printed `n+2`.
-8. **"Is scheme [6] slower or faster in reality?"** We have not verified it. We only say
+8. **"Is scheme [6] slower or faster in reality?"** (backup B13) We have not verified it. We only say
    that, using the paper's own row for [6], the advantage drawn in its Fig. 4 is not
    supported by the paper's numbers.
 9. **"Why do your milliseconds differ from the paper's?"** Different curve, library and
@@ -311,16 +314,16 @@ version without them: `/path/to/deckenv/bin/python presentation/build/build_deck
 
 More (why certificate-based, why a malicious KGC is realistic, why `H_1` and `H_2`, why
 `R_i` is hashed, why two backends, why 2.37 on P-256, what the paper proves): the notes of
-slide 31 hold short answers to all 18 prepared questions.
+slide 26 hold short answers to all 18 prepared questions.
 
 ## 12. Soft spots: know them before you are asked
 
 - The Verma code follows Qiao's §IV-A description; Verma's original paper is not cross-checked.
 - The paper's proofs are not audited; we noticed inconsistencies in the lemma texts (B5).
-- The caching counts, the recomputation of the paper's Figs. 3-5, the `T_i` placement
+- The caching counts, the recomputation of the paper's Figs. 3-5 (B13), the `T_i` placement
   checks (B6) and the P-256 explanation are audit scripts in `presentation/audit/`, not
   repository tests. Fig. 5 was matched by eye at its endpoints.
-- Timings: three of four machine-and-backend combinations; the Xeon is one sweep; P-256
+- Timings (B9, B14): three of four machine-and-backend combinations; the Xeon is one sweep; P-256
   was timed on one machine. Aggregate verification is slower than `n` separate Ed25519
   checks in our code: aggregation buys bandwidth, not verifier CPU.
 - A variant with one hash for both coefficients (`u = v`) still resisted the KGC rescaling

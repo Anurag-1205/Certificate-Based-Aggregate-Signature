@@ -15,7 +15,7 @@ def build(d):
         SAY: We investigated one IEEE paper end to end: we ran its attack, tested its repair, and recomputed its performance numbers. Two of the results you will see are the paper's own, reproduced. One is a discrepancy the paper does not mention.
         AUDIENCE SHOULD GET: this is an investigation with a question, not a paper summary.
                 NEXT: start with where this scheme is meant to run.
-        IF ASKED 'what is your contribution?': the attack and the repair are the paper's; what we add is the causal ablation, the cost audit and its independent timing check (slide 31 has the full list).
+        IF ASKED 'what is your contribution?': the attack and the repair are the paper's; what we add is the causal ablation, the cost audit and its independent timing check (slide 26 has the full list).
     """))
     tb(s, 0.8, 0.62, 9, 0.3, "MTECH INTERIM RESEARCH PRESENTATION", size=13, color="#9FB3C8", bold=True, spc=140, check=False)
     tb(s, 0.8, 1.2, 9.0, 2.7, ["An Efficient Certificate-Based", "Aggregate Signature Scheme With", "Provable Security for Industrial", "Internet of Things"],

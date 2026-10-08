@@ -46,20 +46,19 @@ def save(fig, name):
     print("wrote", (FIG / name).relative_to(ROOT))
 
 
-# ------------------------------------------------------------------ 1. n = 100 bars
+# ------------------------------------------------------------------ 1. n = 100 bars (slide 24)
 n100 = C["n100"]
-fig, ax = plt.subplots(figsize=(6.9, 4.75))
-fig.subplots_adjust(left=0.13, right=0.97, top=0.91, bottom=0.265)
-labels = ["Paper:\nTable III row\n(= its Fig. 4 bar)", "Recount, per-signer\nvalues cached", "Recount from the\npaper's algorithm"]
-vals = [n100["printed_ms"], n100["cached_ms"], n100["recount_ms"]]
-bars = ax.bar(labels, vals, color=[GRAY, "#5B6675", T.INK], width=0.58)
-for b, v, f in zip(bars, vals, [None, n100["factor_cached"], n100["factor"]]):
+fig, ax = plt.subplots(figsize=(5.7, 3.95))
+fig.subplots_adjust(left=0.15, right=0.97, top=0.90, bottom=0.335)
+labels = ["Paper's printed row\n(the bar in its Fig. 4)", "Recount of the paper's\nown equation"]
+vals = [n100["printed_ms"], n100["recount_ms"]]
+bars = ax.bar(labels, vals, color=[GRAY, T.INK], width=0.5)
+for b, v in zip(bars, vals):
     ax.text(b.get_x() + b.get_width() / 2, v + 0.6, f"{v:.3f} ms", ha="center", fontsize=17, fontweight="bold")
-    if f:
-        ax.text(b.get_x() + b.get_width() / 2, v / 2, f"×{f:.2f}", ha="center", color="white", fontsize=20, fontweight="bold")
+ax.text(bars[1].get_x() + bars[1].get_width() / 2, vals[1] / 2, f"×{n100['factor']:.2f}", ha="center", color="white", fontsize=24, fontweight="bold")
 ax.set_ylim(0, 31)
-ax.set_ylabel("Aggregate verification time (ms)")
-ax.set_title("n = 100 signers, paper's own Table IV costs")
+ax.set_ylabel("Aggregate verification (ms)")
+ax.set_title("n = 100 signers, paper's Table IV unit costs")
 ax.tick_params(axis="x", labelsize=12.5)
 ax.grid(axis="y", alpha=0.25)
 source(fig, "Source: paper Tables III–IV; recount from the implementation (audit/verify_claims.py). Model values, not measurements.")

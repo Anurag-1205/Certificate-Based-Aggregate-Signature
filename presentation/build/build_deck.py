@@ -15,7 +15,7 @@ import lib  # noqa: E402
 
 OUT = HERE.parent / "CBAS_Interim_Presentation.pptx"
 PARTS = ["slides_a", "slides_b", "slides_c", "slides_d", "slides_e", "slides_f"]
-TOTAL_MAIN = 32
+TOTAL_MAIN = 27
 
 
 def main():
