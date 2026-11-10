@@ -141,8 +141,8 @@ def main(backend: str = "p256", n: int = 200, trials: int = 5, seed: int = 7) ->
     print(f"  {'fault rate':>11} | " + " ".join(f"k={k:<7}" for k in ks) + "  best k")
     sub_rows = []
     for rate in (0.001, 0.005, 0.02, 0.05, 0.10):
-        cells = [f"{subbatch_plan(500, rate, k, fixed_part, per_sig)['cost_per_delivered']:.4f}"
-                 for k in ks]
+        costs = [subbatch_plan(500, rate, k, fixed_part, per_sig)["cost_per_delivered"] for k in ks]
+        cells = [f"{c:.4f}" if c < 1000 else ">1000" for c in costs]
         best = best_subbatch_size(500, rate, cost_fixed=fixed_part,
                                   cost_per_signature=per_sig)
         sub_rows.append({"rate": rate, "best_k": best["k"],
@@ -156,14 +156,27 @@ def main(backend: str = "p256", n: int = 200, trials: int = 5, seed: int = 7) ->
     print(RULE)
     print("  CONCLUSION")
     print(RULE)
-    print("  BLIND is the paper's model and is untenable at any nonzero fault")
-    print("  rate: one bad signature costs the whole batch, and the culprit")
-    print("  cannot be identified from the aggregate.")
+    first_lost = next((r["fault_rate"] for r in rows if r["blind"] == float("inf")), None)
+    retain_wins = [r for r in rows if r["retain"] < r["preverify"]]
+    preverify_wins = [r for r in rows if r["retain"] >= r["preverify"]]
+    print("  BLIND is the paper's model. It is the cheapest policy while faults")
+    print("  are rare, but one bad signature costs the whole batch and the")
+    print("  culprit cannot be identified from the aggregate.")
+    if first_lost is not None:
+        print(f"  At a {first_lost:.1%} fault rate it delivered nothing in any trial,")
+        print("  and one misbehaving sensor per batch is enough to keep it there.")
     print()
-    print("  RETAIN dominates PREVERIFY whenever faults are rare, because a")
-    print("  clean batch costs one aggregate verification instead of n")
-    print(f"  individual ones ({c_single / (c_agg / n):.0f}x dearer per signature).")
-    print()
+    if retain_wins and preverify_wins:
+        last = max(r["mean_faults"] for r in retain_wins)
+        first = min(preverify_wins, key=lambda r: r["fault_rate"])
+        when = ("only in the trials with no bad signature" if last == 0
+                else f"up to {last:.1f} bad signatures per batch of {n}")
+        print(f"  RETAIN beats PREVERIFY {when},")
+        print("  because a clean batch costs one aggregate verification instead of")
+        print(f"  n individual ones ({c_single / (c_agg / n):.1f}x dearer per signature). From"
+              f" {first['mean_faults']:.1f} bad")
+        print(f"  signatures per batch ({first['fault_rate']:.1%}), PREVERIFY is cheaper.")
+        print()
     print("  PREVERIFY is preferable when faults are common enough that")
     print("  localisation runs often, and when the aggregator must guarantee")
     print("  the cloud never sees a failing aggregate.")

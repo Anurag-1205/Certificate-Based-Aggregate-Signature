@@ -20,9 +20,6 @@ the signing equation is affine in a coefficient the attacker knows, and an
 affine relation with a known coefficient can be rescaled to any other
 coefficient.  See ``attack.py``.
 
-The independent analysis of Xiong et al. (IACR ePrint 2020/1027) reaches the
-same conclusion about this scheme by a different route.
-
 Encoding note: this implementation uses the same length-prefixed TLV and
 domain-separated hashing discipline as the secure scheme.  That is deliberate --
 it ensures the forgery demonstrates a genuine *scheme-level* break rather than

@@ -68,7 +68,7 @@ Run in this order on a new machine:
 
 ```bash
 make selftest   # 62 group-algebra checks, both curves — depends on nothing else
-make test       # 418 tests, every test parameterised over both backends
+make test       # 420 tests: 197 run on both backends, 26 need no backend
 ```
 
 ## Usage
@@ -127,7 +127,7 @@ the full 2×2 result.
   Ristretto255 rather than raw Ed25519. The second backend exists so that no
   result depends on one curve, one library, or one balance of primitive costs,
   and so two independent implementations can be checked against each other.
-  Every test is parameterised over both.
+  Every test that touches the group runs on both.
 - **Domain-separated `H0`/`H1`/`H2`** — the paper applies `H1` and `H2` to
   identical inputs; instantiating both as the same hash function collapses
   part of the security argument (see [`hashing.py`](src/cbas/hashing.py)).
@@ -176,7 +176,7 @@ src/cbas/
   nonce_demo.py         the nonce-reuse demonstration
   demo.py               end-to-end walkthrough of the repaired scheme
   sidebyside.py         both forgeries against both schemes
-tests/                  418 tests, parameterised over both backends
+tests/                  420 tests (197 x 2 backends + 26 backend-independent)
 bench/
   harness.py            timing, CPU stabilisation, linear fitting
   ops.py, baseline.py, sweep.py, repeat.py, report.py, plots.py
@@ -192,10 +192,6 @@ bench/
   Efficient Signature Scheme With Compact Aggregation for Industrial Internet
   of Things Environment," *IEEE Internet of Things Journal*, vol. 7, no. 4,
   pp. 2563–2572, 2020 — the scheme shown broken.
-- H. Xiong, Y. Hou, X. Huang, and S. Kumari, "Certificate-Based Parallel
-  Key-Insulated Aggregate Signature Against Fully Chosen-Key Attacks for
-  IIoT," IACR ePrint 2020/1027 — independent corroboration that Verma et al.'s
-  scheme is forgeable by a malicious KGC.
 - S. Goldwasser, S. Micali, and R. L. Rivest, "A Digital Signature Scheme
   Secure Against Adaptive Chosen-Message Attacks," *SIAM J. Computing*,
   vol. 17, no. 2, pp. 281–308, 1988 — the attack/forgery taxonomy used in

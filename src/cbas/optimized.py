@@ -309,8 +309,8 @@ def sign_prepared(params: PublicParams, ctx: SigningContext, message: bytes) -> 
     """Sign using precomputed encodings.
 
     Identical in output distribution to :func:`cbas.scheme.sign`; the nonce is
-    still drawn fresh for every signature, so the scheme's replay resistance is
-    unaffected.
+    still drawn fresh for every signature, because a cached ``T`` would be a
+    reused nonce, which gives away the keys (see ``nonce_reuse.py``).
     """
     be = params.be
     t = be.scalar_random()

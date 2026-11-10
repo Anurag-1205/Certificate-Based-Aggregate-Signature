@@ -193,8 +193,8 @@ def test_prepared_signing_verifies_under_the_reference(be):
 def test_prepared_signing_keeps_the_nonce_fresh(be):
     """Caching must not make signing deterministic.
 
-    The scheme's replay resistance rests on a fresh nonce per signature; an
-    optimisation that cached T would silently destroy it.
+    A cached T is a reused nonce, and three signatures under one nonce give
+    away the signer's keys (see test_nonce_reuse.py).
     """
     from cbas.optimized import prepare_signing, sign_prepared
 

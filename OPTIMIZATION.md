@@ -18,12 +18,15 @@ Reproduce with `make optimize`.
 
 | P-256 / OpenSSL | CBAS | Verma | ratio |
 |---|---:|---:|---:|
-| naive, per signer | 166.8 us | 70.8 us | **2.355** |
-| fully optimised, per signer | 67.2 us | 22.1 us | **3.044** |
-| speedup from optimising | 2.48x | 3.21x | |
+| naive, per signer | 169.0 us | 71.2 us | **2.375** |
+| fully optimised, per signer | 68.4 us | 22.4 us | **3.049** |
+| speedup from optimising | 2.47x | 3.17x | |
+
+This is the run recorded in `bench/results/optimization_p256.json`. Over four
+runs the ratio was 2.37 to 2.46 naive and 2.95 to 3.07 optimised.
 
 Tables II and III, being identical for both schemes, require that ratio to be
-**1.000**. It is 2.36 naive and 3.04 optimised.
+**1.000**. It is about 2.4 naive and about 3.0 optimised.
 
 ## What was optimised
 
@@ -56,7 +59,7 @@ measurement applied the prepared roster to CBAS but only the MSM to Verma, and
 reported a ratio of **1.63** — appearing to show that optimisation closes the
 gap. That number was an artefact of unequal treatment. Verma's `H0(id || pk)` is
 static for exactly the same reason, so it gets a prepared roster too, and the
-honest figure is **3.04** in the opposite direction.
+honest figure is **about 3.0** in the opposite direction.
 
 Comparing an optimised implementation of one scheme against an unoptimised
 implementation of the other measures the implementations, not the schemes.
@@ -72,11 +75,13 @@ multiplication over `n+2` terms; this scheme's is over `3n+1`:
 | CBAS | `3n + 1` | 1501 |
 | ratio | → 3 | 2.99 |
 
-The measured optimised ratio is **3.044** against a term ratio of **2.99**. As
+The measured optimised ratio is **2.95 to 3.07** against a term ratio of **2.99**. As
 the per-term cost comes to dominate, the timing ratio converges on the ratio of
 term counts, which is the structural `3n+1 : n+2` difference between the two
-verification equations. The naive ratio of ~2.3 reflects the `2n+2 : n+2` scalar
-multiplication counts; the optimised ratio reflects the MSM term counts. Both
+verification equations. The naive ratio of ~2.4 reflects the `2n+2 : n+2` scalar
+multiplication counts (2.375 measured, against 2.37 predicted once the hash
+calls are priced with their point encodings; see [RESULTS.md](RESULTS.md)); the
+optimised ratio reflects the MSM term counts. Both
 exclude parity.
 
 ## The signer side
@@ -95,7 +100,8 @@ encodings, leaving one per signature for the fresh nonce commitment.
 Group operations are unchanged at `1Te + 2Th` on both paths — the saving is
 encoding work, not cryptography — and the nonce is still drawn fresh for every
 signature, which a test asserts, because an optimisation that cached `T` would
-silently destroy the scheme's replay resistance.
+reuse the nonce, and three signatures under one nonce give away the signer's
+keys ([OPEN_ANALYSIS.md](OPEN_ANALYSIS.md)).
 
 ## One architectural difference explains both asymmetries
 
@@ -108,7 +114,7 @@ follow from a single design choice, measured directly:
 | P-256 / OpenSSL | 5.84 us | 2.54 us | **2.302** |
 | Ristretto255 / libsodium | 0.07 us | 23.35 us | **0.003** |
 
-A factor of 767 between the two ratios. libsodium stores a Ristretto255 point
+Roughly 700 times apart. libsodium stores a Ristretto255 point
 *as* its 32-byte encoding, so encoding is a field read while every addition must
 decode both operands and re-encode the result. OpenSSL keeps Jacobian
 coordinates, so addition is cheap while encoding costs a modular inversion to
@@ -128,11 +134,12 @@ the MSM path falls back to naive evaluation and the result is a **regression**:
 
 | Ristretto255 / libsodium | naive | +MSM | +prepared | speedup |
 |---|---:|---:|---:|---:|
-| CBAS | 252.0 us | 248.9 us | 236.8 us | **1.06x** |
-| Verma | 116.9 us | 116.8 us | 106.9 us | 1.09x |
+| CBAS | 252.6 us | 253.3 us | 240.8 us | **1.05x** |
+| Verma | 118.7 us | 118.5 us | 107.9 us | 1.10x |
 
 Almost nothing. The ratio still moves the wrong way for the published rows
-(2.155 naive, 2.216 optimised), but neither scheme gains materially.
+(2.127 naive, 2.232 optimised in the recorded run; 2.12 to 2.13 and 2.23 to
+2.24 over four runs), but neither scheme gains materially.
 
 An earlier version of the fallback was *worse* than naive, at 0.85x. Expressing
 `sum(T_i)` as multi-scalar terms with scalar one meant a backend without a

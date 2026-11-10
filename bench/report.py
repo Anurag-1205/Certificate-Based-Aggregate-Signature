@@ -125,12 +125,11 @@ def main(backend: str = "ristretto255") -> int:
     print(f"    per-signer cost not covered by the Te/Ta/Th model:")
     print(f"      CBAS  {overhead_cbas * 1000:7.3f} us  ({overhead_cbas / sc * 100:.0f}% of measured)")
     print(f"      Verma {overhead_verma * 1000:7.3f} us  ({overhead_verma / sv * 100:.0f}% of measured)")
-    print( "    This is Python loop, TLV encoding and attribute access. It is not")
-    print( "    equal between the schemes: CBAS hashes three times per signer to")
-    print( "    Verma's two, and multiplies two points to Verma's one, so the")
-    print( "    interpreter does more work per signer for CBAS. Where the group")
-    print( "    operations themselves are cheap, this pushes the measured ratio")
-    print( "    above the ratio the operation counts alone predict.")
+    print( "    Most of this is point encoding inside the hash calls, which the")
+    print( "    model prices as bare hashes: CBAS encodes 8 points per signer to")
+    print( "    Verma's 2. Encoding is a modular inversion on P-256 and nearly")
+    print( "    free on Ristretto255. `python -m bench.hashcost` prices the real")
+    print( "    hash calls and closes the P-256 gap.")
     print()
 
     # Which hypothesis does the measurement support?

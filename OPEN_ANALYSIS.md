@@ -76,10 +76,12 @@ the input."
 that replay is resisted. A replay attack re-sends an old, valid
 (message, signature) pair, and that pair still verifies. It also verifies
 inside a new aggregate, even when the same signature appears twice in one
-batch. `Δ` cannot help, because it is a fixed public parameter set once in
-Setup. Resisting replay needs freshness that the verifier checks, such as a
-sequence number or timestamp inside the message, or rejecting a repeated
-`T_i`. The scheme as specified provides none of these.
+batch. The paper sets `Δ` once in Setup and never says it changes. If a
+deployment did rotate `Δ` per epoch, old signatures would stop verifying in the
+new epoch (`test_cross_epoch_signature_is_rejected`), but replay inside an epoch
+would still work. Resisting replay needs freshness that the verifier checks,
+such as a sequence number or timestamp inside the message, or rejecting a
+repeated `T_i`. The scheme as specified provides none of these.
 
 ## 3. Section V-C, property 4: "Perfect forward security"
 

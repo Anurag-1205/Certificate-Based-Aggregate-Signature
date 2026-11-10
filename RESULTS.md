@@ -134,21 +134,31 @@ costs, and comparing against the directly measured slopes:
 | P-256, Ryzen | 1.986 | 2.366 | +19% |
 
 On Ristretto255 the agreement is essentially exact on both machines. On P-256 the
-measurement **exceeds** the prediction by about 20%, and the reason is visible in
-the numbers rather than hypothetical: P-256's point addition is seven times
-cheaper (`Ta` 0.0032 against 0.0233 ms), so the group operations are a smaller
-share of the total and the Python interpreter's share is correspondingly larger.
+measurement **exceeds** the prediction by about 20%.
 
-That interpreter overhead is **not equal between the schemes**. CBAS hashes three
-times per signer to Verma's two, and performs two scalar multiplications per
-signer to Verma's one, so the loop, the TLV encoding and the attribute access all
-cost more per signer for CBAS. Where the cryptography is cheap, that pushes the
-measured ratio above what the `Te`/`Ta`/`Th` model alone predicts.
+The cause is the cost of a real hash call, which the model leaves out. The model
+charges each hash as one bare SHA-512 plus a reduction. A real `H0`, `H1` or `H2`
+call also serialises its point arguments, and CBAS verification serialises
+**8 points per signer** against Verma's **2**: `H0` encodes `pk` and `R`, while `H1`
+and `H2` each encode `pk`, `R` and `T`. A test counts the encodings
+(`test_hash_inputs_encode_8_points_per_signer_against_vermas_2`). On P-256 via
+OpenSSL an encoding costs a modular inversion, so the bare model undercounts CBAS
+far more than Verma. On Ristretto255 via libsodium a point is stored as its
+encoding, so the same calls cost almost nothing extra.
 
-This is a limitation of the model, not evidence against the counts. The counts
-themselves are exact and backend-independent; the timing model omits interpreter
-work by construction. Both instruments point the same way, and both exclude the
-published rows by a wide margin:
+Pricing the real hash calls instead of a bare hash closes the gap
+(`python -m bench.hashcost`, three repeats each):
+
+| Configuration | bare-hash model | real-hash model | measured |
+|---|---:|---:|---:|
+| P-256, Ryzen | 1.985 – 1.986 | 2.363 – 2.371 | 2.366 |
+| Ristretto255, Ryzen | 2.143 | 2.139 – 2.143 | 2.153 |
+
+So the residual is not interpreter overhead and not evidence against the counts.
+The counts themselves are exact and backend-independent; the bare model simply
+prices hashing too cheaply on a library where encoding is expensive. Both
+instruments point the same way, and both exclude the published rows by a wide
+margin:
 
 ```
 published rows say 1.000       -> off by 1.12 to 1.37
@@ -207,8 +217,9 @@ the operation counts that Tables II and III report.
 
 - Absolute times include Python and ctypes overhead and are not the cost of the
   cryptography alone. Ratios and slopes are the defensible quantities.
-- The `Te`/`Ta`/`Th` model omits interpreter work, which is why the P-256
-  cross-check closes to 20% rather than 1%.
+- The bare `Te`/`Ta`/`Th` model prices a hash without its point encodings,
+  which is why the P-256 cross-check closes to 20% rather than 1%. Pricing the
+  real hash calls closes it (`bench/hashcost.py`).
 - `AggVerify` is deliberately the naive `2n+2` scalar multiplications.
   Multi-scalar multiplication (Strauss, Pippenger) would reduce it substantially
   and is deferred to Phase 3, so that the baseline compared against the paper's

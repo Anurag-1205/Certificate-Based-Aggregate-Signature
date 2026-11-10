@@ -3,7 +3,8 @@
 Property 2, "resist replay attacks": the paper argues that signing is
 probabilistic, so signing the same message twice gives different signatures.
 That is true, but it does not stop replay: an old (message, signature) pair
-still verifies, and nothing in the scheme marks it as old.
+still verifies, and nothing in the scheme marks it as old. (Rotating Delta
+would bound replay to one epoch; the paper sets Delta once in Setup.)
 
 Property 4, "perfect forward security": the paper argues that no one can
 obtain the nonce. Forward security for signatures (Bellare and Miner, 1999)

@@ -64,7 +64,7 @@ def test_aggregate_verifies_for_various_n(be, n):
 
 
 def test_signing_is_probabilistic(be):
-    """Same message twice must give different signatures (replay resistance)."""
+    """Same message twice must give different signatures (the paper's Sec. V-C basis for replay resistance)."""
     params, _, signers, secrets, messages = enrol(be, 1)
     a = sign(params, signers[0], secrets[0][0].sk, secrets[0][1], messages[0])
     b = sign(params, signers[0], secrets[0][0].sk, secrets[0][1], messages[0])

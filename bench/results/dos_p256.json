@@ -3,92 +3,92 @@
   "backend": "p256/openssl",
   "n": 200,
   "trials": 5,
-  "timestamp": "2026-09-13T23:02:29+0530",
+  "timestamp": "2026-11-10T15:19:51+0530",
   "environment": {
     "python": "3.12.3",
     "machine": "x86_64",
-    "system": "Linux 7.0.0-31-generic",
+    "system": "Linux 7.0.0-42-generic",
     "processor": "AMD Ryzen 5 7520U with Radeon Graphics",
     "libsodium": "1.0.18"
   },
   "unit_cost_ms": {
-    "single_verify": 0.31134953471539323,
-    "aggregate_verify": 31.32397500303341,
-    "per_signature_in_aggregate": 0.15661987501516705
+    "single_verify": 0.12172709687376937,
+    "aggregate_verify": 13.717133499994816,
+    "per_signature_in_aggregate": 0.06858566749997408
   },
   "policy_rows": [
     {
       "fault_rate": 0.0,
       "mean_faults": 0.0,
-      "blind": 0.15661987501516705,
-      "preverify": 0.4324041090148967,
-      "retain": 0.3563949690069421
+      "blind": 0.06858566749997408,
+      "preverify": 0.19557860050008458,
+      "retain": 0.13744898450022447
     },
     {
       "fault_rate": 0.001,
       "mean_faults": 0.0,
-      "blind": 0.15661987501516705,
-      "preverify": 0.4333819400126231,
-      "retain": 0.3147418430162361
+      "blind": 0.06858566749997408,
+      "preverify": 0.19518181049988925,
+      "retain": 0.13853982249929686
     },
     {
       "fault_rate": 0.005,
       "mean_faults": 0.8,
-      "blind": 0.39154968753791763,
-      "preverify": 0.4222523152729918,
-      "retain": 0.5735833986119291
+      "blind": 0.1714641687499352,
+      "preverify": 0.1963415175690255,
+      "retain": 0.2839582625501022
     },
     {
       "fault_rate": 0.02,
       "mean_faults": 3.4,
       "blind": Infinity,
-      "preverify": 0.3761651109014534,
-      "retain": 0.7969507263742538
+      "preverify": 0.1989655284847919,
+      "retain": 0.45501353763967506
     },
     {
       "fault_rate": 0.05,
       "mean_faults": 7.8,
       "blind": Infinity,
-      "preverify": 0.5005482393609477,
-      "retain": 1.7277530343570402
+      "preverify": 0.20422320343334696,
+      "retain": 0.5582354552548078
     },
     {
       "fault_rate": 0.1,
       "mean_faults": 18.4,
       "blind": Infinity,
-      "preverify": 0.7222878271122801,
-      "retain": 2.5507817368025276
+      "preverify": 0.21450616354600985,
+      "retain": 0.6848451051762278
     }
   ],
   "subbatch": [
     {
       "rate": 0.001,
       "best_k": 25,
-      "cost_per_delivered": 0.1661673402600057,
+      "cost_per_delivered": 0.07223944350592289,
       "fraction_delivered": 0.9752977125970462
     },
     {
       "rate": 0.005,
       "best_k": 10,
-      "cost_per_delivered": 0.1802031679766699,
+      "cost_per_delivered": 0.07744578672344245,
       "fraction_delivered": 0.9511101304657711
     },
     {
       "rate": 0.02,
       "best_k": 5,
-      "cost_per_delivered": 0.20681433465664528,
+      "cost_per_delivered": 0.08739739119563902,
       "fraction_delivered": 0.903920796800002
     },
     {
       "rate": 0.05,
       "best_k": 5,
-      "cost_per_delivered": 0.24159780774193268,
+      "cost_per_delivered": 0.10209649224888492,
       "fraction_delivered": 0.7737809374999985
     },
     {
       "rate": 0.1,
       "best_k": 2,
-      "cost_per_delivered": 0.2883900455260283,
+      "cost_per_delivered": 0.11731217408338439,
       "fraction_delivered": 0.8100000000000018
     }
   ]

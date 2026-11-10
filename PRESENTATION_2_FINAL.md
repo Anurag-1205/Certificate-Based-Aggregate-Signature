@@ -146,8 +146,10 @@ variable independently, and generalises the paper's own design lesson.
   security" claim (it does not match the standard definition, since nothing in
   the scheme evolves keys) are both identified but not yet built out.
 - The P-256 cross-check between operation counts and measured time does not
-  close as tightly as the Ristretto255 one (19% residual vs <1%) — attributed
-  to interpreter overhead that is not evenly split between the two schemes.
+  close as tightly as the Ristretto255 one (19% residual vs <1%) under the bare
+  hash model. Pricing the real hash calls, which encode 8 points per signer for
+  CBAS against Verma's 2, predicts 2.363–2.371 against a measured 2.366
+  (`bench/hashcost.py`). It is not interpreter overhead.
   Worth stating as a limitation of the timing *model*, not of the underlying
   operation-count claim, which two curves and two machines agree on.
 
@@ -161,7 +163,7 @@ asserted, on two unrelated cryptographic backends.
 
 - [ ] On `main`, up to date.
 - [ ] `make test` — confirm the full suite is green before presenting (currently
-      418 tests).
+      420 tests).
 - [ ] `make attack` — all three targets; Target 3 is the centrepiece.
 - [ ] `make optimize` — the naive-vs-optimised comparison, both schemes.
 - [ ] `make dos` — the aggregator policy table.

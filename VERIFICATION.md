@@ -9,9 +9,8 @@ here in full, together with the objections considered and rejected.
 
 **Not claimed:** that the scheme is insecure, that the security proof is wrong, or
 that the paper's central contribution fails. The paper's cryptanalysis of Verma et
-al.'s CB-CAS is *independently corroborated* by Xiong et al., who reach the same
-conclusion by a different route (see [Sources](#sources)). The construction and the
-two-sided reduction are not at issue here.
+al.'s CB-CAS is reproduced as running code in this repository (`make attack`). The
+construction and the two-sided reduction are not at issue here.
 
 **Claimed, narrowly:** the cost expressions attributed to the new scheme in Table II
 and Table III are arithmetically inconsistent with the scheme's own algorithm
@@ -166,11 +165,6 @@ make selftest                      # group backend algebra, 31 checks
   Signature Scheme for the e-Healthcare Monitoring System," *IEEE Systems Journal*,
   14(2):1704-1715, 2020 -- scheme [6], counted by the paper in a way that
   contradicts its own rows. <https://ieeexplore.ieee.org/document/8788464/>
-- H. Xiong, Y. Hou, X. Huang, S. Kumari, "Certificate-Based Parallel Key-Insulated
-  Aggregate Signature Against Fully Chosen-Key Attacks for IIoT," IACR ePrint
-  2020/1027 -- independently concludes Verma et al.'s CB-CAS is forgeable by a
-  malicious KGC, corroborating this paper's security contribution.
-  <https://eprint.iacr.org/2020/1027.pdf>
 - "A Lightweight Certificate-Based Aggregate Signature Scheme Providing Key
   Insulation," *CMC*, 69(2) -- same sub-literature, same symbol convention
   (`Tsm` scalar multiplication, `Tsa` point addition, `H` hash).

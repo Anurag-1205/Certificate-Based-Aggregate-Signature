@@ -195,3 +195,48 @@ def test_te_claim_cannot_be_rescued_by_algebraic_rewriting(be):
     secret_side = be.point_mul_base(uc_acc)
     assert be.point_eq(verifier_side, secret_side), "the identity should hold"
     # It holds -- but only the secret_side is cheap, and it needs c_i.
+
+
+def _encodings_per_signer(be, mod, signer_of):
+    """Point encodings performed by mod.agg_verify, per signer (fitted from n=1 and n=4)."""
+    params, msk = mod.setup(be, b"epoch-0")
+    counts = {}
+    for n in (1, 4):
+        signers, msgs, sigs = [], [], []
+        for j in range(n):
+            keys = mod.keygen(params)
+            ident = b"sensor-%03d" % j
+            cert = mod.cert_gen(params, msk, ident, keys.pk)
+            signer = signer_of(ident, keys, cert)
+            signers.append(signer)
+            msgs.append(b"reading-%d" % j)
+            sigs.append(mod.sign(params, signer, keys.sk, cert, msgs[-1]))
+        agg = mod.agg_sign(params, sigs)
+        encode, seen = be.point_to_bytes, [0]
+
+        def counted(point):
+            seen[0] += 1
+            return encode(point)
+
+        be.point_to_bytes = counted
+        try:
+            assert mod.agg_verify(params, signers, msgs, agg)
+        finally:
+            del be.point_to_bytes
+        counts[n] = seen[0]
+    return (counts[4] - counts[1]) / 3
+
+
+def test_hash_inputs_encode_8_points_per_signer_against_vermas_2(be):
+    """Why the P-256 timing exceeds the Te/Ta/Th model (RESULTS.md).
+
+    Each hash call serialises its point inputs: H0 encodes pk and R, H1 and H2
+    each encode pk, R and T, so 8 per signer; Verma's H0 and H1 encode pk once
+    each, so 2. Encoding is a modular inversion on OpenSSL's P-256 and nearly
+    free on libsodium's Ristretto255, so the gap shows on P-256 only.
+    """
+    from cbas import scheme as fixed, verma
+
+    q = _encodings_per_signer(be, fixed, lambda i, k, c: fixed.Signer(identity=i, pk=k.pk, R=c.R))
+    v = _encodings_per_signer(be, verma, lambda i, k, c: verma.Signer(identity=i, pk=k.pk))
+    assert (q, v) == (8, 2)

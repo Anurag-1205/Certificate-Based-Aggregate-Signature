@@ -30,8 +30,10 @@ A university course project. Three strands of output:
    denial-of-service vector its system model does not cover.
 
 **Scope discipline that must be preserved:** the paper's *security* contribution
-is not disputed. Verma's scheme being KGC-forgeable is independently corroborated
-(Xiong et al., IACR ePrint 2020/1027). Only the cost tables are challenged.
+is not disputed. Verma's scheme being KGC-forgeable is reproduced as running code
+(`make attack`). Do not cite Xiong et al. (ePrint 2020/1027) as corroboration: its
+abstract does not mention Verma's scheme and its body could not be checked. Only the
+cost tables are challenged.
 `VERIFICATION.md` states this explicitly; keep it that way.
 
 ---
@@ -240,9 +242,10 @@ Evidence chain:
   the value plotted in Fig. 4, so that figure inherits the error — against
   25.324 ms actual.
 
-Known soft spot: the P-256 cross-check closes to 19%, not 0.5%, because
-interpreter overhead is a larger share where point addition is cheap, and that
-overhead is unequal between schemes (CBAS does 3 hashes/signer to Verma's 2).
+Known soft spot, now explained: the P-256 cross-check closes to 19%, not 0.5%,
+under the bare hash model. CBAS hash calls encode 8 points per signer to Verma's
+2, and encoding is expensive on OpenSSL P-256; pricing the real hash calls
+(bench/hashcost.py) predicts 2.363-2.371 against a measured 2.366.
 Stated plainly in `RESULTS.md`; do not quietly drop it.
 
 ### Claim: Fix #2 is what carries the security

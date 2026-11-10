@@ -1,6 +1,6 @@
 PY := .venv/bin/python
 
-.PHONY: help selftest test attack nonce bench bench-repeat optimize dos plots kaggle-kernel verify clean
+.PHONY: help selftest test attack nonce bench hashcost bench-repeat optimize dos plots kaggle-kernel verify clean
 
 help:
 	@echo "make selftest  - backend algebraic self-test (no pytest needed)"
@@ -10,6 +10,7 @@ help:
 	@echo "make nonce     - key recovery from a reused nonce, and the defence"
 	@echo "make bench     - timing sweep and analysis, both backends"
 	@echo "make bench-repeat - repeated sweeps with spread"
+	@echo "make hashcost  - price real hash calls in the timing model"
 	@echo "make optimize  - optimised verification, both schemes"
 	@echo "make dos       - aggregator policy under faults"
 	@echo "make plots     - render figures from the last bench run"
@@ -31,6 +32,9 @@ nonce:
 bench:
 	$(PY) -m bench.report --backend ristretto255
 	$(PY) -m bench.report --backend p256
+
+hashcost:
+	$(PY) -m bench.hashcost
 
 bench-repeat:
 	$(PY) -m bench.repeat --repeats 3

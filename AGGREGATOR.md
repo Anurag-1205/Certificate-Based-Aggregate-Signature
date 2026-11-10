@@ -43,13 +43,15 @@ aggregate verification *regardless of its size*, so `f` faults among `n` cost
 
 This works because aggregate verification is cheaper per signature than
 individual verification — the fixed terms are paid once for the whole range.
-Measured on P-256 at `n = 200`:
+Measured on P-256 at `n = 200` (recorded in `bench/results/dos_p256.json`):
 
 ```
-one signature, verified individually      0.3113 ms
-200 signatures, as one aggregate         31.3240 ms   (0.1566 ms per signature)
-individual verification is 2.0x dearer per signature
+one signature, verified individually      0.1217 ms
+200 signatures, as one aggregate         13.7171 ms   (0.0686 ms per signature)
+individual verification is 1.8x dearer per signature
 ```
+
+Repeated runs give 1.7x to 1.8x.
 
 A single fault among 32 signatures is located in fewer than 32 verifications,
 which a test asserts.
@@ -59,24 +61,30 @@ which a test asserts.
 Cost per delivered signature, P-256, `n = 200` — total aggregator plus cloud
 work divided by the signatures that actually arrive verified:
 
-| fault rate | BLIND | PREVERIFY | RETAIN | best |
-|---:|---:|---:|---:|---|
-| 0.000 | 0.1566 | 0.4324 | 0.3564 | RETAIN |
-| 0.001 | 0.1566 | 0.4334 | 0.3147 | RETAIN |
-| 0.005 | 0.3915 | 0.4223 | 0.5736 | PREVERIFY |
-| 0.020 | batch lost | 0.3762 | 0.7970 | PREVERIFY |
-| 0.050 | batch lost | 0.5005 | 1.7278 | PREVERIFY |
-| 0.100 | batch lost | 0.7223 | 2.5508 | PREVERIFY |
+| fault rate | bad per batch (mean) | BLIND | PREVERIFY | RETAIN | cheapest of the two that deliver |
+|---:|---:|---:|---:|---:|---|
+| 0.000 | 0.0 | 0.0686 | 0.1956 | 0.1374 | RETAIN |
+| 0.001 | 0.0 | 0.0686 | 0.1952 | 0.1385 | RETAIN |
+| 0.005 | 0.8 | 0.1715 | 0.1963 | 0.2840 | PREVERIFY |
+| 0.020 | 3.4 | batch lost | 0.1990 | 0.4550 | PREVERIFY |
+| 0.050 | 7.8 | batch lost | 0.2042 | 0.5582 | PREVERIFY |
+| 0.100 | 18.4 | batch lost | 0.2145 | 0.6848 | PREVERIFY |
 
-The crossover is low — around a 0.5% fault rate — and the reason is that
-individual verification is only **2x** the amortised per-signature cost of
-aggregate verification, not the order of magnitude one might assume. That makes
-`PREVERIFY` affordable, and it degrades gracefully: 0.72 ms per delivered
-signature even at a 10% fault rate, against `RETAIN`'s 2.55 ms, because
-localisation runs on nearly every batch once faults are common.
+Five trials per row with a fixed seed. At the 0.1% rate no trial drew a bad
+signature, so the first two rows are both clean batches.
 
-For a healthy industrial deployment, where sensors fail rarely, `RETAIN` is the
-cheaper choice. `PREVERIFY` is right when faults are common, when an adversary
+`BLIND` is cheapest while every batch is clean, but from 2% it delivered nothing
+in any trial. The crossover between the other two is low: `RETAIN` wins only on
+clean batches, and from about one bad signature per batch of 200 (0.5%)
+`PREVERIFY` is cheaper. The reason is that individual verification is only
+**1.8x** the amortised per-signature cost of aggregate verification, not the
+order of magnitude one might assume. That makes `PREVERIFY` affordable, and it
+degrades gracefully: 0.21 ms per delivered signature even at a 10% fault rate,
+against `RETAIN`'s 0.68 ms, because localisation runs on nearly every batch once
+faults are common.
+
+For a healthy industrial deployment, where sensors almost never fail, `RETAIN`
+is the cheaper choice. `PREVERIFY` is right when faults are common, when an adversary
 may be *deliberately* injecting them — which is the case the DoS framing is
 about, and where the fault rate is chosen by the attacker — or when the
 aggregator must guarantee the cloud never sees a failing aggregate.
@@ -84,8 +92,8 @@ aggregator must guarantee the cloud never sees a failing aggregate.
 That last point decides it for an adversarial setting: an attacker who can
 submit signatures chooses the operating point, and `RETAIN`'s cost rises with
 the fault rate while `PREVERIFY`'s barely moves. **`PREVERIFY` is the
-conservative default**, and it costs roughly 2.8x a blind aggregation on a clean
-batch.
+conservative default**, and it costs about 2.9x a blind aggregation on a clean
+batch (0.1956 against 0.0686 ms per signature).
 
 ## If the aggregator cannot verify at all
 
@@ -93,15 +101,15 @@ An aggregator too constrained to verify can still bound the blast radius by
 splitting into sub-batches of `k`. Delivery alone is the wrong objective — it is
 maximised at `k = 1`, which is aggregation abandoned — so the model charges
 `verify(k) = fixed + k x per_signature`, fitted to this backend's measurements
-(`0.1555 + k x 0.1558 ms`). The optimum is then interior:
+(`0.0534 + k x 0.0683 ms`). The optimum is then interior:
 
 | fault rate | best `k` | cost per delivered | delivered |
 |---:|---:|---:|---:|
-| 0.001 | 25 | 0.1662 ms | 97.5% |
-| 0.005 | 10 | 0.1802 ms | 95.1% |
-| 0.020 | 5 | 0.2068 ms | 90.4% |
-| 0.050 | 5 | 0.2416 ms | 77.4% |
-| 0.100 | 2 | 0.2884 ms | 81.0% |
+| 0.001 | 25 | 0.0722 ms | 97.5% |
+| 0.005 | 10 | 0.0774 ms | 95.1% |
+| 0.020 | 5 | 0.0874 ms | 90.4% |
+| 0.050 | 5 | 0.1021 ms | 77.4% |
+| 0.100 | 2 | 0.1173 ms | 81.0% |
 
 The optimal batch shrinks as faults rise, and aggregating 500 signatures in one
 batch is catastrophic at any appreciable fault rate — at 5% it delivers
