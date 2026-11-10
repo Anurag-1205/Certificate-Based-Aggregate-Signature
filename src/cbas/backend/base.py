@@ -40,12 +40,21 @@ class InvalidScalar(BackendError):
 
 @dataclass(frozen=True)
 class OpCount:
-    """Counted primitive operations, in the paper's units."""
+    """Counted primitive operations, in the paper's units.
+
+    ``Tm`` and ``Tm_terms`` fall outside the paper's model entirely: a
+    multi-scalar multiplication is a single native call evaluating many terms
+    at once, and is not expressible as a number of ``Te``. They are counted
+    separately so that an optimised verification is never silently reported in
+    units that do not describe it.
+    """
 
     Te: int = 0  # scalar multiplications (group)
     Ta: int = 0  # point additions (group)
     Th: int = 0  # hash computations
     Ts: int = 0  # scalar-field operations (not modelled by the paper)
+    Tm: int = 0  # multi-scalar multiplications (not modelled by the paper)
+    Tm_terms: int = 0  # total terms across those multi-scalar multiplications
 
     def __sub__(self, other: "OpCount") -> "OpCount":
         return OpCount(
@@ -53,6 +62,8 @@ class OpCount:
             Ta=self.Ta - other.Ta,
             Th=self.Th - other.Th,
             Ts=self.Ts - other.Ts,
+            Tm=self.Tm - other.Tm,
+            Tm_terms=self.Tm_terms - other.Tm_terms,
         )
 
     def __add__(self, other: "OpCount") -> "OpCount":
@@ -61,6 +72,8 @@ class OpCount:
             Ta=self.Ta + other.Ta,
             Th=self.Th + other.Th,
             Ts=self.Ts + other.Ts,
+            Tm=self.Tm + other.Tm,
+            Tm_terms=self.Tm_terms + other.Tm_terms,
         )
 
     def cost_ms(self, te: float, ta: float, th: float) -> float:
@@ -185,6 +198,32 @@ class Backend(ABC):
 
     @abstractmethod
     def scalar_from_bytes(self, data: bytes): ...
+
+    # -- multi-scalar multiplication --------------------------------------
+    #: Whether this backend evaluates multi-scalar multiplication natively.
+    has_native_msm: bool = False
+
+    def multi_scalar_mul(self, base_scalar, points, scalars):
+        """Compute ``base_scalar*P + sum(scalars[i] * points[i])``.
+
+        A backend whose library provides a native multi-scalar multiplication
+        overrides this and evaluates the whole sum in one call, which is far
+        faster than driving each term across the language boundary. The default
+        below is the naive evaluation, so every backend supports the operation
+        and results remain comparable between them.
+
+        Terms whose scalar is one are added directly rather than multiplied.
+        Without that, a caller expressing a plain sum of points as a
+        multi-scalar multiplication would pay a full scalar multiplication per
+        term on backends taking this path, making the "optimised" route slower
+        than the naive one it replaces.
+        """
+        one = self.scalar_from_int(1)
+        acc = self.point_mul_base(base_scalar) if base_scalar is not None else None
+        for point, scalar in zip(points, scalars):
+            term = point if scalar == one else self.point_mul(scalar, point)
+            acc = term if acc is None else self.point_add(acc, term)
+        return acc if acc is not None else self.identity
 
     # -- instrumentation --------------------------------------------------
     def note_hash(self, count: int = 1) -> None:

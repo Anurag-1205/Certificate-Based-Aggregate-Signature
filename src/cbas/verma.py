@@ -48,16 +48,22 @@ def _hash_to_scalar(backend: Backend, dst: bytes, *fields):
     return backend.scalar_from_wide(hashlib.sha512(preimage).digest())
 
 
+def H0_bytes(backend: Backend, identity, pk_bytes: bytes):
+    return _hash_to_scalar(backend, DST_H0, identity, pk_bytes)
+
+
+def H1_bytes(backend: Backend, message, pk_bytes: bytes, identity, delta):
+    return _hash_to_scalar(backend, DST_H1, message, pk_bytes, identity, delta)
+
+
 def H0(backend: Backend, identity, pk):
     """``H0(id || pk)``.  Note: no R, unlike the repaired scheme."""
-    return _hash_to_scalar(backend, DST_H0, identity, backend.point_to_bytes(pk))
+    return H0_bytes(backend, identity, backend.point_to_bytes(pk))
 
 
 def H1(backend: Backend, message, pk, identity, delta):
     """``H1(m || pk || id || D)``.  Note: **no T, no R** -- this is the flaw."""
-    return _hash_to_scalar(
-        backend, DST_H1, message, backend.point_to_bytes(pk), identity, delta
-    )
+    return H1_bytes(backend, message, backend.point_to_bytes(pk), identity, delta)
 
 
 # --------------------------------------------------------------------------

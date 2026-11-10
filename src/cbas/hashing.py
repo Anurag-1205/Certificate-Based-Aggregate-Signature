@@ -62,40 +62,44 @@ def _hash_to_scalar(backend: Backend, dst: bytes, *fields):
     return s
 
 
+# The ``*_bytes`` variants take points already encoded, so a caller holding a
+# static signer roster can encode each public key and certificate nonce once
+# rather than on every verification. Point encoding is not free -- it dominated
+# a profile of aggregate verification -- and the encodings never change. The
+# convenience wrappers below call straight through, so the two paths cannot
+# drift apart and produce different hashes.
+
+def H0_bytes(backend: Backend, identity, pk_bytes: bytes, R_bytes: bytes):
+    return _hash_to_scalar(backend, DST_H0, identity, pk_bytes, R_bytes)
+
+
+def H1_bytes(backend: Backend, message, pk_bytes: bytes, R_bytes: bytes,
+             identity, T_bytes: bytes, delta):
+    return _hash_to_scalar(backend, DST_H1, message, pk_bytes, R_bytes,
+                           identity, T_bytes, delta)
+
+
+def H2_bytes(backend: Backend, message, pk_bytes: bytes, R_bytes: bytes,
+             identity, T_bytes: bytes, delta):
+    return _hash_to_scalar(backend, DST_H2, message, pk_bytes, R_bytes,
+                           identity, T_bytes, delta)
+
+
 def H0(backend: Backend, identity, pk, R):
     """``H0(id || pk || R) -> Z_p*`` -- binds the certificate to R (Fix #1)."""
-    return _hash_to_scalar(
-        backend,
-        DST_H0,
-        identity,
-        backend.point_to_bytes(pk),
-        backend.point_to_bytes(R),
-    )
+    return H0_bytes(backend, identity,
+                    backend.point_to_bytes(pk), backend.point_to_bytes(R))
 
 
 def H1(backend: Backend, message, pk, R, identity, T, delta):
     """``H1(m || pk || R || id || T || D) -> Z_p*`` -- the secret-key coefficient ``v``."""
-    return _hash_to_scalar(
-        backend,
-        DST_H1,
-        message,
-        backend.point_to_bytes(pk),
-        backend.point_to_bytes(R),
-        identity,
-        backend.point_to_bytes(T),
-        delta,
-    )
+    return H1_bytes(backend, message, backend.point_to_bytes(pk),
+                    backend.point_to_bytes(R), identity,
+                    backend.point_to_bytes(T), delta)
 
 
 def H2(backend: Backend, message, pk, R, identity, T, delta):
     """``H2(m || pk || R || id || T || D) -> Z_p*`` -- the certificate coefficient ``u``."""
-    return _hash_to_scalar(
-        backend,
-        DST_H2,
-        message,
-        backend.point_to_bytes(pk),
-        backend.point_to_bytes(R),
-        identity,
-        backend.point_to_bytes(T),
-        delta,
-    )
+    return H2_bytes(backend, message, backend.point_to_bytes(pk),
+                    backend.point_to_bytes(R), identity,
+                    backend.point_to_bytes(T), delta)

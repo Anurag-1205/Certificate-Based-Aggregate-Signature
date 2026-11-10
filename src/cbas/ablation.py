@@ -110,6 +110,94 @@ def verify_single(params: PublicParams, signer: Signer, message: bytes, sig: Sig
     return agg_verify(params, [signer], [message], AggregateSignature(T=(sig.T,), z=sig.z))
 
 
+def forge_keyonly_via_t(
+    params: PublicParams,
+    identity: bytes,
+    pk,
+    R,
+    target_message: bytes,
+    z=None,
+):
+    """A key-only forgery against THIS ablation, solving for T instead of R.
+
+    Fix #1 (R bound into every hash) is intact here, so ``keyonly_attack.py``'s
+    R-solving technique is blocked -- confirmed below by
+    ``attempt_solve_for_r_ablated``, which does not converge. But Fix #2 is
+    removed: T is *not* an input to ``H1_ablated``/``H2_ablated``. That leaves
+    T, not R, as the free variable -- h0, u and v are all computable once
+    (id, pk, R, m) are fixed, none of them needing T, so the verify equation is
+    a plain linear statement in T:
+
+        T := z*P - u*R - u*h0*P_TA - v*pk
+
+    No observed signature is needed (contrast ``forge_ablated`` above, which
+    needs one), and no secret key. ``R`` can be any point at all, including a
+    real, honestly-published victim's -- the certificate is never checked
+    against it. This is a *stronger* break of this ablation than the
+    rescaling attack it was built to demonstrate: fewer capabilities are
+    needed to mount it.
+    """
+    be = params.be
+    z = z if z is not None else be.scalar_from_int(0)
+    h0 = H0(be, identity, pk, R)
+    v = H1_ablated(be, target_message, pk, R, identity, params.delta)
+    u = H2_ablated(be, target_message, pk, R, identity, params.delta)
+    T = be.point_sub(
+        be.point_mul_base(z),
+        be.point_add(be.point_mul(u, R),
+                     be.point_add(be.point_mul(u, be.point_mul(h0, params.pk_ta)),
+                                  be.point_mul(v, pk))),
+    )
+    return Signature(T=T, z=z)
+
+
+def attempt_solve_for_r_ablated(
+    params: PublicParams,
+    identity: bytes,
+    pk,
+    T_seed,
+    target_message: bytes,
+    z=None,
+    max_iterations: int = 16,
+) -> dict:
+    """The complementary check: Fix #1 is intact, so solving for R should fail.
+
+    Attempted for completeness, so the claim that "R is still protected here"
+    rests on a failed attempt rather than an assertion. h0 and v (H1_ablated
+    includes R) both depend on R, so this is the same fixed-point circularity
+    as the real scheme -- just checked against this specific variant.
+    """
+    be = params.be
+    z = z if z is not None else be.scalar_from_int(0)
+    T = T_seed
+    R = T_seed  # arbitrary seed; any starting point is as good as another
+    trace = []
+
+    for k in range(1, max_iterations + 1):
+        h0 = H0(be, identity, pk, R)
+        v = H1_ablated(be, target_message, pk, R, identity, params.delta)
+        u = H2_ablated(be, target_message, pk, R, identity, params.delta)
+        if be.scalar_is_zero(u):  # pragma: no cover
+            break
+        rhs = be.point_sub(
+            be.point_mul_base(z),
+            be.point_add(T, be.point_add(be.point_mul(u, be.point_mul(h0, params.pk_ta)),
+                                         be.point_mul(v, pk))),
+        )
+        R_required = be.point_mul(be.scalar_invert(u), rhs)
+        trace.append(be.point_to_bytes(R_required)[:8].hex())
+        if be.point_eq(R_required, R):
+            sig = Signature(T=T, z=z)
+            fake = Signer(identity=identity, pk=pk, R=R)
+            if verify_single(params, fake, target_message, sig):
+                return {"succeeded": True, "iterations": k, "trace": trace}
+        R = R_required
+
+    return {"succeeded": False, "iterations": max_iterations, "trace": trace,
+           "reason": "R is bound into H0 and H1_ablated here (Fix #1 intact); "
+                     "the iteration does not settle."}
+
+
 def forge_ablated(
     params: PublicParams,
     signer: Signer,
