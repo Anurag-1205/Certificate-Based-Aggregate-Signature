@@ -33,7 +33,7 @@ Fonts: Calibri, Cambria, Courier New. The PDF was rendered with metric-compatibl
 
 | File | What it is |
 |---|---|
-| `CBAS_Final_Presentation.pptx` / `.pdf` | 30 main slides (spoken route 17 min 15 s), Thank You, appendix divider, backups B1–B14. Two live demos (slides 10 and 22) with captured fallbacks. |
+| `CBAS_Final_Presentation.pptx` / `.pdf` | 30 main slides (spoken route 17 min 25 s), Thank You, appendix divider, backups B1–B14. Two live demos (slides 10 and 22) with captured fallbacks. |
 | `speaker_notes_final.md` | Every slide's notes, with a `TIME:` line per main slide. |
 | `demo_fallback_final/` | Real captured output of `make attack` (Target 3), the 2×2 tests and `make nonce`. |
 | `figures/final_optimisation.png` | The optimisation chart (slide 15). |

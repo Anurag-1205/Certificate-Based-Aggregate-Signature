@@ -20,7 +20,7 @@ TOTAL_MAIN = 30
 FOOTER = "Certificate-based aggregate signatures for IIoT · final research presentation"
 
 # Seconds per main slide. Total is printed by the build and must stay within the 15-20 minute slot.
-ROUTE = {1: 20, 2: 20, 3: 30, 4: 30, 5: 30, 6: 25, 7: 30, 8: 60, 9: 30, 10: 75, 11: 30, 12: 60, 13: 20,
+ROUTE = {1: 20, 2: 20, 3: 40, 4: 30, 5: 30, 6: 25, 7: 30, 8: 60, 9: 30, 10: 75, 11: 30, 12: 60, 13: 20,
          14: 30, 15: 45, 16: 30, 17: 30, 18: 30, 19: 45, 20: 30, 21: 45, 22: 75, 23: 30, 24: 30, 25: 35,
          26: 20, 27: 30, 28: 20, 29: 20, 30: 30}
 

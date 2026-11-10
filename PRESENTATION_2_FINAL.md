@@ -5,7 +5,7 @@ The deck is [presentation/CBAS_Final_Presentation.pptx](presentation/CBAS_Final_
 [presentation/speaker_notes_final.md](presentation/speaker_notes_final.md).
 
 - **Format:** 30 main slides, then Thank You (slide 31), an appendix divider, and backups B1–B14.
-- **Time:** the route in the notes adds up to **17 min 15 s**. That leaves room in a 15–20 minute
+- **Time:** the route in the notes adds up to **17 min 25 s**. That leaves room in a 15–20 minute
   slot for a slow demo or one question mid-talk. Each slide's notes end with a `TIME:` line that
   gives the seconds for that slide and the clock at its end.
 - **Demos:** two live demos, on slides 10 and 22. Each demo slide also shows the captured output of
@@ -16,7 +16,7 @@ The deck is [presentation/CBAS_Final_Presentation.pptx](presentation/CBAS_Final_
 | Slides | Part | Content | Tags |
 |---|---|---|---|
 | 1–2 | Opening | Title; roadmap from the interim to today | |
-| 3–5 | I · Recap (as the TAs asked) | The setting and both schemes; the paper's attack reproduced, and the T-binding ablation; the cost rows about ×2 too low | PAPER, REPRODUCED, OUR AUDIT, EXPERIMENT |
+| 3–5 | I · Recap (as the TAs asked) | The repaired scheme's architecture (who computes and sends what, and where Parts III–V land); the paper's attack reproduced, and the T-binding ablation; the cost rows about ×2 too low | PAPER, REPRODUCED, OUR AUDIT, EXPERIMENT |
 | 6 | I · Promises | The four open questions from interim slide 27, each answered; the tag legend | |
 | 7–13 | II · A second look at the attack | Key-only universal forgery on Verma; it contradicts Table II; **Demo 1**; why the repair resists it; the 2×2; the general lesson | OUR FINDING, EXPERIMENT |
 | 14–16 | III · Faster verification | Equal treatment, and the 1.63 artefact; the gap widens from ×2.4 to ×3.0; library dependence; the P-256 residual explained | IMPLEMENTATION, EXPERIMENT, OUR AUDIT |

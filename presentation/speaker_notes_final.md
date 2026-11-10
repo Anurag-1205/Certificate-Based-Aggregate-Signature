@@ -17,14 +17,15 @@ NEXT: the recap.
 TIME: 20 s on this slide; 0:40 elapsed at the end of it. Do not read the list; point at the two columns.
 
 
-## Slide 3: Sensors sign, an aggregator combines, the cloud verifies
+## Slide 3: The repaired scheme: who computes and sends what
 
 Tags: PAPER
 
-SAY: A quick reminder. A KGC enrols each sensor with a certificate; sensors sign readings; an aggregator combines n signatures into one; the cloud checks them all at once. Six algorithms, numbered one to six as at the interim.
-THE TWO SCHEMES: Verma et al. sign with z = r_2 + c + sk v, where v hashes the message, public key, identity and Delta, but no commitment. Qiao et al.'s repair signs with z = t + c u + sk v, where u and v hash the message together with the commitments R_i and T_i. Keep that difference in mind: which values go into the hash decides everything in this talk.
-NEXT: what that difference does to the paper's attack.
-TIME: 30 s on this slide; 1:10 elapsed at the end of it.
+SAY: The architecture from the interim, now drawn with the values the repaired scheme actually sends. The KGC publishes the parameters and gives each sensor a certificate, c_i and R_i, after receiving its public key. A sensor signs its reading: delta_i is the commitment T_i and the response z_i. The aggregator adds the z_i and keeps every T_i. The cloud checks one equation for all n readings.
+THE REPAIR, bottom strip: u_i and v_i hash the message together with both commitments, R_i and T_i, and H_0 hashes R_i. Verma's hashes contained neither commitment. Which values go into the hash decides everything in this talk.
+THE ORANGE MARKERS: where today's parts land on this picture. Part V at the sensor (its nonce t_i) and at the cloud (replay); Part IV at the aggregator (one bad signature); Part III at the cloud (the cost of this equation). Part II is about Verma's scheme, the one this repair replaces.
+NEXT: what the paper's attack does to Verma's scheme, and what the repair changes.
+TIME: 40 s on this slide; 1:20 elapsed at the end of it.
 
 
 ## Slide 4: The paper's attack breaks Verma; the Ti binding stops it
@@ -35,7 +36,7 @@ SAY: At the interim we ran the paper's attack. A malicious KGC that has seen one
 PROVENANCE: the attack and the repair are the paper's (reproduced). The ablation is ours.
 NEXT: the cost claim.
 Numbers recomputed today on the current code by presentation/audit/verify_claims_final.py.
-TIME: 30 s on this slide; 1:40 elapsed at the end of it.
+TIME: 30 s on this slide; 1:50 elapsed at the end of it.
 
 
 ## Slide 5: The repaired scheme costs about twice what the paper prints
@@ -45,7 +46,7 @@ Tags: EXPERIMENT, OUR AUDIT, PAPER
 SAY: The paper gives its own scheme exactly the same aggregate-verification cost as Verma's. Counting the operations in its own verification equation gives about twice as many scalar multiplications. With the paper's own unit costs at n = 100: 12.729 ms printed against 25.324 ms recounted. Timing on three setups agreed: per-signer ratio 2.12 to 2.37, where the printed rows imply 1.00.
 AUDIENCE SHOULD GET: the "as cheap as Verma" claim does not follow from the paper's own algorithm. Today, Part III asks whether a better implementation rescues it.
 NEXT: the four questions we left open.
-TIME: 30 s on this slide; 2:10 elapsed at the end of it.
+TIME: 30 s on this slide; 2:20 elapsed at the end of it.
 
 
 ## Slide 6: At the interim we left four questions open. All four are answered today.
@@ -53,7 +54,7 @@ TIME: 30 s on this slide; 2:10 elapsed at the end of it.
 SAY: These are the four questions from the last slide of the interim, word for word on the left. On the right, today's one-line answer and where it is. The order of the talk differs slightly: the attack comes first, because it is the strongest result.
 THE TAGS: the coloured pills on every slide say whose claim it is. Paper: claimed by Qiao et al. Reproduced: we re-ran it. Implementation: our design choice. Experiment: we measured it. Our audit and our finding: original to this project.
 NEXT: Part II, the attack.
-TIME: 25 s on this slide; 2:35 elapsed at the end of it. Read the four answers only.
+TIME: 25 s on this slide; 2:45 elapsed at the end of it. Read the four answers only.
 
 
 ## Slide 7: Is the paper's attack the weakest one against Verma's scheme?
@@ -63,7 +64,7 @@ Tags: OUR FINDING, PAPER
 SAY: The paper's attacker is strong: a malicious KGC with the master key and the certificate it issued, and it must first see one signature from the victim. We asked whether a much weaker attacker can do the same. The answer is yes: someone who holds nothing but the victim's public key, and has seen no signature at all.
 TERMS: Goldwasser, Micali and Rivest (1988) classify attacks by what the attacker is given, and forgeries by what it produces. A key-only attack sees only public keys. A universal forgery is valid on any message the attacker likes. Key-only plus universal is the strongest combination.
 NEXT: how it works, in one equation.
-TIME: 30 s on this slide; 3:05 elapsed at the end of it.
+TIME: 30 s on this slide; 3:15 elapsed at the end of it.
 
 
 ## Slide 8: Verma's commitment Ri is in no hash, so we can solve for it
@@ -75,7 +76,7 @@ THE THREE STEPS: pick any z, for example zero. Compute h_0 and v from public dat
 WHY IT IS FAMILIAR: Schnorr signatures hash the commitment together with the message, c = H(R, m), exactly so that R cannot be chosen after the challenge is known. With c = H(m) a Schnorr signature is forgeable the same way.
 IF ASKED 'is R not fixed by the certificate?': no; in Verma's scheme R_i = R_1i + r_2i P is part of each signature, fresh every time. The verifier has no fixed value to compare it with.
 Code: src/cbas/keyonly_attack.py, forge_verma_keyonly (about ten lines).
-TIME: 60 s on this slide; 4:05 elapsed at the end of it. This is the key slide of Part II.
+TIME: 60 s on this slide; 4:15 elapsed at the end of it. This is the key slide of Part II.
 
 
 ## Slide 9: This contradicts the paper's Table II
@@ -86,7 +87,7 @@ SAY: The paper's Table II rates Verma's scheme, reference 11, as secure against 
 RESULT: 8 of 8 key-only forgeries verify (4 messages, 2 libraries), and 8 of 8 also pass aggregate verification next to an honest signature.
 IF ASKED 'is this in the literature already?': the underlying principle, hashing the commitment, is textbook. We have not found this attack on Verma's scheme stated anywhere, but we did not do an exhaustive literature search, so we say 'not discussed in the paper', not 'new to the field'.
 NEXT: we run it.
-TIME: 30 s on this slide; 4:35 elapsed at the end of it.
+TIME: 30 s on this slide; 4:45 elapsed at the end of it.
 
 
 ## Slide 10: Demo 1: a forgery from a public key alone
@@ -98,7 +99,7 @@ POINT AT: (1) attacker capability: it sees P_TA and this sensor's public key, no
 SAY: The sensor's key is a real, honestly enrolled key; the forger never touches its secret key, certificate or any signature.
 FALLBACK: if the terminal fails or is slow, this slide already shows the captured output of the same command. Say 'this is the output of the same command, captured earlier'. Backup B13 has it larger.
 NEXT: why the repaired scheme survives.
-TIME: 75 s on this slide; 5:50 elapsed at the end of it.
+TIME: 75 s on this slide; 6:00 elapsed at the end of it.
 
 
 ## Slide 11: Why the repaired scheme resists it
@@ -108,7 +109,7 @@ Tags: EXPERIMENT, PAPER
 SAY: In the repaired scheme R appears in all three hashes: h_0, u and v are hashes of R, and also of T. To solve the equation for R, the attacker needs h_0, u and v first; to compute them it needs R first. So the only route is a fixed-point search: guess R, compute the hashes, solve for the R the equation would need, compare. We ran that search: each round gives a new candidate, 16 distinct candidates in every trial, and 0 of 8 forgeries.
 WORDING: this shows that this attack does not apply. It is not a proof of security; the paper's proof covers that, and we have not audited it.
 NEXT: two changes are made at once. Which one does the work?
-TIME: 30 s on this slide; 6:20 elapsed at the end of it.
+TIME: 30 s on this slide; 6:30 elapsed at the end of it.
 
 
 ## Slide 12: Each binding closes its own door, and only its own
@@ -120,7 +121,7 @@ THE CELLS: Top left, the real scheme: both attempts fail. Bottom left, T not has
 THE CAVEAT, important: the two open doors are not the same kind of attack. T travels in every signature, so the bottom-left forgery is a true key-only forgery. In Qiao's scheme R belongs to the certificate, so the top-right forgery only verifies if the verifier accepts an attacker-chosen R: 8 of 8 fail with the real R. That is public-key replacement, the power the paper gives F_1, and it is exactly why the paper says it hashes R. So that cell confirms the paper's reason, with code.
 IF ASKED 'so is R in the hash really needed?': against an attacker who can replace R, yes; this cell shows it. Against a verifier that pins each sensor's R, the T binding alone blocks both attempts here.
 NEXT: the general lesson.
-TIME: 60 s on this slide; 7:20 elapsed at the end of it.
+TIME: 60 s on this slide; 7:30 elapsed at the end of it.
 
 
 ## Slide 13: A commitment outside every hash is a free variable
@@ -130,7 +131,7 @@ Tags: OUR FINDING, PAPER
 SAY: One rule explains every cell. If a value appears in the verification equation but in no hash, and its coefficient is known, an attacker can choose everything else and solve for it. Verma leaves R free. Removing the T binding leaves T free. Removing the R binding leaves R free, for an attacker who may replace it.
 THE PAPER: states this rule for T only, in section V-A, in the context of the one attack it found. We show the same mechanism for either commitment, independently.
 NEXT: Part III, cost.
-TIME: 20 s on this slide; 7:40 elapsed at the end of it.
+TIME: 20 s on this slide; 7:50 elapsed at the end of it.
 
 
 ## Slide 14: Would a real implementation close the gap?
@@ -141,7 +142,7 @@ SAY: A fair objection to the interim: nobody verifies term by term. A real verif
 THE TWO OPTIMISATIONS: one, multi-scalar multiplication: the whole verification equation evaluated in a single native call, OpenSSL's EC_POINTs_mul, instead of one call per term. Two, a prepared sensor roster: an industrial fleet is fixed, so each sensor's encodings and its certificate hash h_0 never change and can be computed once.
 THE MISTAKE WE CAUGHT: our first measurement gave the roster to Qiao's scheme but not to Verma's, and showed a ratio of 1.63, as if optimising closed the gap. That was unequal treatment. With both schemes optimised the same way, the ratio is about 3.
 NEXT: the numbers.
-TIME: 30 s on this slide; 8:10 elapsed at the end of it.
+TIME: 30 s on this slide; 8:20 elapsed at the end of it.
 
 
 ## Slide 15: Optimising both schemes widens the gap: ×2.4 → ×3.0
@@ -152,7 +153,7 @@ SAY: Per-signer cost of aggregate verification on P-256, both schemes, three sta
 WHY IT GROWS: once everything is one multi-scalar multiplication, cost follows the number of terms. Qiao's equation has 3n + 1 terms, Verma's n + 2: at n = 500, 1501 against 502, a ratio of 2.99. The measured ratio converges to the term ratio.
 AUDIENCE SHOULD GET: the paper's "same cost as Verma" claim moves further from the truth in a good implementation, not closer.
 IF ASKED 'why P-256?': it has a native multi-scalar routine; Ristretto255 in libsodium does not (next slide).
-TIME: 45 s on this slide; 8:55 elapsed at the end of it.
+TIME: 45 s on this slide; 9:05 elapsed at the end of it.
 
 
 ## Slide 16: Which optimisation pays depends on the library
@@ -162,7 +163,7 @@ Tags: OUR AUDIT, EXPERIMENT
 SAY: On Ristretto255 through libsodium there is no native multi-scalar routine, so optimising barely helps either scheme, and the ratio still rises: 2.13 to 2.23. The two libraries also store points differently: libsodium keeps a point as its 32-byte encoding, so encoding is nearly free and addition is expensive; OpenSSL keeps coordinates, so addition is cheap and encoding costs a modular inversion.
 THE INTERIM'S OPEN POINT: at the interim, P-256 timing was about 20 percent above what the operation counts predicted. This explains it. Every hash call encodes its point inputs: Qiao's verification encodes 8 points per signer, Verma's 2; a test counts them. On P-256 that is expensive. Pricing the real hash calls predicts 2.363 to 2.371, and we measured 2.366. It was not interpreter overhead.
 NEXT: Part IV, the aggregator.
-TIME: 30 s on this slide; 9:25 elapsed at the end of it.
+TIME: 30 s on this slide; 9:35 elapsed at the end of it.
 
 
 ## Slide 17: One bad signature sinks the whole batch
@@ -173,7 +174,7 @@ SAY: The paper treats the aggregator as harmless: in its words, it does not use 
 TEST: one corrupted signature in a batch of 32: the aggregate fails verification. Nothing in the aggregate identifies the culprit.
 FRAMING: availability, not forgery. The security proof is untouched.
 NEXT: three ways to run an aggregator.
-TIME: 30 s on this slide; 9:55 elapsed at the end of it.
+TIME: 30 s on this slide; 10:05 elapsed at the end of it.
 
 
 ## Slide 18: Three ways to run the aggregator
@@ -184,7 +185,7 @@ SAY: BLIND is the paper's model: merge everything and hope. PREVERIFY checks eve
 WHY RETAIN IS CHEAP: a clean half costs one aggregate verification, whatever its size. One bad signature in 32 was located with 11 verifications instead of 32.
 All three use no secret material, so the security argument is unchanged; a test checks that.
 NEXT: which policy to use, by numbers.
-TIME: 30 s on this slide; 10:25 elapsed at the end of it.
+TIME: 30 s on this slide; 10:35 elapsed at the end of it.
 
 
 ## Slide 19: Pre-verify by default; an attacker chooses the fault rate
@@ -196,7 +197,7 @@ WHY THE CROSSOVER IS SO LOW: verifying a signature on its own is only 1.8 times 
 RECOMMENDATION: in a factory where sensors almost never fail, RETAIN. Where an attacker may submit bad signatures, the attacker picks the fault rate, so PREVERIFY is the safe default.
 NOT SHOWN: the 0.1 and 5 percent rows (AGGREGATOR.md has all six). At 0.1 percent no trial drew a bad signature, so that row is a second clean batch.
 NEXT: Part V, the sensors themselves.
-TIME: 45 s on this slide; 11:10 elapsed at the end of it.
+TIME: 45 s on this slide; 11:20 elapsed at the end of it.
 
 
 ## Slide 20: What if a sensor's random-number generator repeats?
@@ -207,7 +208,7 @@ SAY: Every signature uses a fresh random nonce t_i. The paper simply writes t_i 
 THE EQUATION: z_i = t_i + c_i u_i + sk_i v_i. Anyone can compute u_i and v_i, they are hashes of public data. The unknowns are t_i, the certificate secret c_i and the secret key sk_i. If t_i repeats, every signature under it is one more linear equation in the same three unknowns.
 The repeat is easy to spot: T_i = t_i P is in every signature, so a repeated nonce shows up as a repeated T_i.
 NEXT: how many such signatures are enough.
-TIME: 30 s on this slide; 11:40 elapsed at the end of it.
+TIME: 30 s on this slide; 11:50 elapsed at the end of it.
 
 
 ## Slide 21: How many signatures with one nonce give away the keys?
@@ -219,7 +220,7 @@ THE KGC: it issued the certificate, so it already knows c. Two signatures give i
 RESULTS: outsider with three: 8 of 8 recover both secrets, the forgery verifies 8 of 8 and passes aggregate verification 8 of 8. KGC with two: 8 of 8. Verma with two: 8 of 8.
 PROVENANCE: nonce reuse against Schnorr-type signatures is a standard attack. What is ours is working it out for this scheme: the three-versus-two count and the KGC case.
 NEXT: we run it.
-TIME: 45 s on this slide; 12:25 elapsed at the end of it.
+TIME: 45 s on this slide; 12:35 elapsed at the end of it.
 
 
 ## Slide 22: Demo 2: a stuck RNG gives away a sensor's keys
@@ -230,7 +231,7 @@ RUN: make nonce. About one second.
 POINT AT: Step 1: three readings, the same T in each, and every signature verifies, so nothing looks wrong. Step 2: recovered sk matches pk: True; recovered c passes the certificate check: True; the attacker's own message valve=OPEN verifies: KEYS STOLEN, and it passes aggregate verification next to an honest signature. Step 3: the KGC needs only two.
 FALLBACK: the panel on this slide is the captured output of the same command. Backup B13 has it larger.
 NEXT: the fix, which is step 4 of the same demo.
-TIME: 75 s on this slide; 13:40 elapsed at the end of it.
+TIME: 75 s on this slide; 13:50 elapsed at the end of it.
 
 
 ## Slide 23: The fix: derive the nonce from the keys and the message
@@ -241,7 +242,7 @@ SAY: The standard defence, used by EdDSA and RFC 6979: do not take the nonce str
 NO CHANGE FOR VERIFIERS: the signing equation and the signature format are unchanged, so every existing verifier accepts hedged signatures, also mixed with ordinary ones in one aggregate.
 RESULT: with the RNG stuck, all three nonces distinct in 8 of 8, signatures verify 8 of 8, and the attack refuses to start 8 of 8.
 PROVENANCE: the technique is standard; applying it to this scheme and checking it is ours. The paper specifies no nonce derivation.
-TIME: 30 s on this slide; 14:10 elapsed at the end of it.
+TIME: 30 s on this slide; 14:20 elapsed at the end of it.
 
 
 ## Slide 24: Claim: “resist replay attacks”
@@ -251,7 +252,7 @@ Tags: OUR FINDING, PAPER
 SAY: The paper's argument is that signing is randomised, so signing the same message twice gives a different signature. True, and we checked it. But a replay attack does not sign anything: it re-sends an old, valid message and signature. That pair still verifies. It even verifies inside a new aggregate, and the same signature can appear twice in one batch.
 DELTA: the paper sets Delta once, in Setup, and never says it changes. If a deployment rotated Delta per epoch, old signatures would stop verifying in the next epoch, but replay inside an epoch would still work.
 WHAT IS NEEDED: freshness that the verifier checks: a sequence number or timestamp inside the message, or rejecting repeated T_i values.
-TIME: 30 s on this slide; 14:40 elapsed at the end of it.
+TIME: 30 s on this slide; 14:50 elapsed at the end of it.
 
 
 ## Slide 25: Claim: “perfect forward security”
@@ -263,7 +264,7 @@ THE SCHEME: sk_i and the certificate are fixed for life, and none of the six alg
 THE PAPER ITSELF: cites a scheme titled 'A forward-secure certificate-based signature scheme', its reference 24 (Li et al. 2015), so the notion was available to the authors. We cite only its title; we have not read it.
 IF ASKED 'could the claim be rescued?': only with a different, key-evolving construction like reference 24; not with a change of wording.
 NEXT: Part VI, how we know all this.
-TIME: 35 s on this slide; 15:15 elapsed at the end of it.
+TIME: 35 s on this slide; 15:25 elapsed at the end of it.
 
 
 ## Slide 26: Every result on these slides runs as code
@@ -273,14 +274,14 @@ Tags: EXPERIMENT, IMPLEMENTATION
 SAY: Nothing in this talk is an argument on paper only. The implementation has 420 tests: 197 run on both group libraries, Ristretto255 through libsodium and NIST P-256 through OpenSSL, and 26 need no group at all. A separate self-test runs 62 algebra checks across the two libraries. And every number on these slides is recomputed and asserted by one audit script, which stops if any claim fails.
 WHY TWO LIBRARIES: two independent implementations must agree on every result and every operation count; if one had a bug, they would disagree.
 IF ASKED 'can we run it?': yes, the commands are on the slide; make verify runs everything.
-TIME: 20 s on this slide; 15:35 elapsed at the end of it.
+TIME: 20 s on this slide; 15:45 elapsed at the end of it.
 
 
 ## Slide 27: All results at a glance
 
 SAY: The whole project in one table. Read the left column only, and point at the tags: the first row reproduces the paper; the other eight are ours, an audit of the paper's claims, a measurement, or a new finding.
 PROVENANCE IS THE POINT: we never present the paper's attack as ours; it is tagged reproduced.
-TIME: 30 s on this slide; 16:05 elapsed at the end of it.
+TIME: 30 s on this slide; 16:15 elapsed at the end of it.
 
 
 ## Slide 28: What the paper gets right
@@ -289,14 +290,14 @@ Tags: EXPERIMENT, PAPER
 
 SAY: To be fair to the authors. Their central claim holds up: Verma's scheme is broken by a malicious KGC, and their repair resists that attack. It also resisted the key-only forgery: 0 of 8, with the paper's attack also at 0 of 8. Both of its hash bindings turn out to be necessary. And aggregation really uses no secrets, so the aggregate inherits the single-signature security.
 WHAT WE DID NOT CHECK: their security proof. Nothing we found contradicts it; our findings are about cost, deployment and the extra claims in section V-C.
-TIME: 20 s on this slide; 16:25 elapsed at the end of it.
+TIME: 20 s on this slide; 16:35 elapsed at the end of it.
 
 
 ## Slide 29: Scope and limitations of our results
 
 SAY: What our results do not claim. We did not audit the proof. We implemented Verma's scheme from Qiao et al.'s description of it, not from Verma's own paper. Our timings run in Python over native libraries, so we report ratios and per-signer slopes, never absolute times. The nonce fault is simulated in software. The R-binding cell of the 2 by 2 needs public-key replacement, not just a public key. And the hedged-nonce fix is a standard technique, not a new one.
 WHY THIS SLIDE: every result above is stated within these limits, so a question about any of them has an answer here.
-TIME: 20 s on this slide; 16:45 elapsed at the end of it.
+TIME: 20 s on this slide; 16:55 elapsed at the end of it.
 
 
 ## Slide 30: Three things to remember
@@ -304,7 +305,7 @@ TIME: 20 s on this slide; 16:45 elapsed at the end of it.
 Tags: EXPERIMENT, OUR FINDING
 
 SAY: One: Verma's scheme is broken more simply than the paper says; anyone holding a public key can forge, and the paper's own Table II gets this wrong. Two: the repair works, but it is not as cheap as printed: about twice the printed cost, and three times Verma's once both are optimised. Three: the repaired scheme still needs care in deployment: one bad signature sinks a batch, a repeated nonce gives away every key, and its replay and forward-security claims do not hold. Each of these has a concrete fix.
-TIME: 30 s on this slide; 17:15 elapsed at the end of it. Then stop: thank you, questions.
+TIME: 30 s on this slide; 17:25 elapsed at the end of it. Then stop: thank you, questions.
 
 
 ## Slide 31: Thank you (the talk ends here)

@@ -1,7 +1,7 @@
 """Part I: title, roadmap, recap of the interim (slides 1-6)."""
 import theme as T
 from final_common import C, N, card, num_badge, tag_pill
-from lib import arrow, box, chip, grid, tb, takeaway, text_width
+from lib import arrow, box, chip, grid, party, tb, takeaway, text_width
 
 
 def build(d):
@@ -45,7 +45,7 @@ def build(d):
     box(s, 0.6, 1.7, 3.9, 4.35, fill=T.PANEL, line=None, radius=0.12)
     tb(s, 0.85, 1.85, 3.4, 0.3, "INTERIM · RECAP", size=12.5, color=T.MUTED, bold=True, spc=120, check=False)
     tb(s, 0.85, 2.25, 3.45, 3.7, [{"text": "Slides 3–5", "bold": True, "size": 18, "after": 8},
-                                  {"text": "The setting and the two schemes", "after": 6},
+                                  {"text": "The repaired scheme's architecture", "after": 6},
                                   {"text": "The paper's attack, reproduced, and which change in the repair stops it", "after": 6},
                                   {"text": "The paper's cost rows, recounted"}], size=16, color=T.INK)
     arrow(s, [(4.55, 3.85), (5.05, 3.85)], T.MUTED, lw=2.25)
@@ -64,27 +64,49 @@ def build(d):
             chip(s, 11.88, y + 0.2, 0.75, 0.37, demo, "agg", size=11.5, bold=True)
     takeaway(s, "Three slides of recap, then four parts of new work: one for each question we left open.")
 
-    # ------------------------------------------------------------------ 3. recap: setting and schemes
-    s = d.slide("Part I · Recap 1 of 3", "Sensors sign, an aggregator combines, the cloud verifies", tags=["PAPER"], notes=N("""
-        SAY: A quick reminder. A KGC enrols each sensor with a certificate; sensors sign readings; an aggregator combines n signatures into one; the cloud checks them all at once. Six algorithms, numbered one to six as at the interim.
-        THE TWO SCHEMES: Verma et al. sign with z = r_2 + c + sk v, where v hashes the message, public key, identity and Delta, but no commitment. Qiao et al.'s repair signs with z = t + c u + sk v, where u and v hash the message together with the commitments R_i and T_i. Keep that difference in mind: which values go into the hash decides everything in this talk.
-        TIME: 45 seconds.
-        NEXT: what that difference does to the paper's attack.
+    # ------------------------------------------------------------------ 3. recap: architecture of the repaired scheme
+    s = d.slide("Part I · Recap 1 of 3", "The repaired scheme: who computes and sends what", tags=["PAPER"], notes=N("""
+        SAY: The architecture from the interim, now drawn with the values the repaired scheme actually sends. The KGC publishes the parameters and gives each sensor a certificate, c_i and R_i, after receiving its public key. A sensor signs its reading: delta_i is the commitment T_i and the response z_i. The aggregator adds the z_i and keeps every T_i. The cloud checks one equation for all n readings.
+        THE REPAIR, bottom strip: u_i and v_i hash the message together with both commitments, R_i and T_i, and H_0 hashes R_i. Verma's hashes contained neither commitment. Which values go into the hash decides everything in this talk.
+        THE ORANGE MARKERS: where today's parts land on this picture. Part V at the sensor (its nonce t_i) and at the cloud (replay); Part IV at the aggregator (one bad signature); Part III at the cloud (the cost of this equation). Part II is about Verma's scheme, the one this repair replaces.
+        TIME: 40 seconds.
+        NEXT: what the paper's attack does to Verma's scheme, and what the repair changes.
     """))
-    xs = 0.6
-    for label, who, k in (("① Setup", "KGC", "kgc"), ("② KeyGen", "sensor", "sen"), ("③ CertGen", "KGC", "kgc"),
-                          ("④ Sign", "sensor", "sen"), ("⑤ AggSign", "aggregator", "agg"), ("⑥ AggVerify", "cloud", "ver")):
-        chip(s, xs, 1.7, 1.938, 0.62, [{"text": label, "size": 15, "bold": True}, {"text": who, "size": 12, "color": T.MUTED}], k)
-        xs += 2.038
-    card(s, 0.6, 2.6, 5.95, 3.45, "Verma et al. (2020), as reviewed in the paper",
-         ["$z_{i} = r_{2i} + c_{i} + sk_{i}v_{i}$",
-          "$v_{i} = H_{1}(m_{i}‖pk_{i}‖id_{i}‖Δ)$: no commitment in the hash",
-          "Constant-size aggregate: one point, one scalar"], line=T.BAD, lw=1.75, hsize=19, bsize=19, gap=14)
-    card(s, 6.78, 2.6, 5.95, 3.45, "Qiao et al. (2023), the repair",
-         ["$z_{i} = t_{i} + c_{i}u_{i} + sk_{i}v_{i}$",
-          "$v_{i}, u_{i} = H_{1}, H_{2}(m_{i}‖pk_{i}‖[[grn|R_{i}]]‖id_{i}‖[[grn|T_{i}]]‖Δ)$",
-          "$R_{i}$ also enters the certificate hash $H_{0}$"], line=T.GOOD, lw=1.75, hsize=19, bsize=19, gap=14)
-    takeaway(s, "The repair puts the commitments $R_{i}$ and $T_{i}$ inside the hashes. That choice drives the whole talk.")
+    box(s, 0.6, 3.05, 6.85, 3.0, fill=None, line=T.MUTED, lw=1.25, dash=True, radius=0.15)
+    tb(s, 0.78, 3.1, 3, 0.3, "factory area", size=13, color=T.MUTED)
+    for y, name in ((3.45, "Sensor 1"), (4.25, "Sensor 2"), (5.3, "Sensor n")):
+        party(s, "sen", 0.9, y, 2.35, 0.66, text=[{"text": name, "size": 16, "bold": True},
+                                                    {"text": "② KeyGen · ④ Sign", "size": 12.5, "color": T.SEN}])
+    tb(s, 0.9, 4.95, 2.35, 0.3, "⋮", size=20, color=T.MUTED, align="c", check=False)
+    party(s, "agg", 4.7, 4.1, 2.5, 1.05, text=[{"text": "Aggregator", "size": 17, "bold": True},
+                                                 {"text": "⑤ AggSign: $z = Σz_{i}$", "size": 13.5, "color": T.AGG}])
+    party(s, "kgc", 5.1, 1.62, 3.0, 1.05, text=[{"text": "KGC", "size": 17, "bold": True},
+                                                  {"text": "holds $s^{k}_{TA}$", "size": 13, "color": T.MUTED},
+                                                  {"text": "① Setup · ③ CertGen", "size": 13.5, "color": T.KGC}])
+    party(s, "ver", 9.45, 3.95, 3.28, 1.2, text=[{"text": "Cloud server", "size": 17, "bold": True},
+                                                   {"text": "⑥ AggVerify: accept all n, or reject", "size": 12.5, "color": T.VER}])
+    arrow(s, [(8.1, 2.15), (12.45, 2.15), (12.45, 3.95)], T.KGC)
+    tb(s, 8.25, 1.68, 2.8, 0.42, "① $Params$: $P^{k}_{TA}$, $H_{0}$, $H_{1}$, $H_{2}$, $Δ$", size=13.5, color=T.KGC, bold=True)
+    arrow(s, [(5.1, 1.9), (1.85, 1.9), (1.85, 3.45)], T.KGC)
+    tb(s, 2.0, 1.5, 3.05, 0.36, "③ $Cert_{i} = (c_{i}, R_{i})$", size=14.5, color=T.KGC, bold=True)
+    arrow(s, [(2.55, 3.45), (2.55, 2.4), (5.1, 2.4)], T.SEN)
+    tb(s, 2.72, 2.45, 2.3, 0.36, "② $pk_{i}$", size=14.5, color=T.SEN, bold=True)
+    arrow(s, [(3.25, 3.78), (3.95, 3.78), (3.95, 4.35), (4.7, 4.35)], T.SEN)
+    arrow(s, [(3.25, 4.58), (4.7, 4.58)], T.SEN)
+    arrow(s, [(3.25, 5.63), (3.95, 5.63), (3.95, 4.88), (4.7, 4.88)], T.SEN)
+    tb(s, 3.38, 3.27, 4.0, 0.36, "④ $m_{i}$, $δ_{i} = (T_{i}, z_{i})$", size=14.5, color=T.SEN, bold=True)
+    arrow(s, [(7.2, 4.6), (9.45, 4.6)], T.AGG, lw=2.25)
+    tb(s, 7.5, 3.6, 1.9, 0.95, "⑤ $m_{1}, …, m_{n}$ and $δ = (T_{1}, …, T_{n}, z)$", size=13, color=T.AGG, bold=True, lsp=0.95)
+    box(s, 7.65, 5.35, 5.08, 0.62, fill=T.PANEL, line=None, radius=0.08,
+        text="$zP = ΣT_{i} + Σu_{i}R_{i} + (Σu_{i}h^{i}_{0})P^{k}_{TA} + Σv_{i}pk_{i}$", size=14)
+    for x, y, w, label in ((4.3, 5.62, 3.05, "Part V: a sensor repeats its nonce $t_{i}$"), (4.7, 3.68, 2.5, "Part IV: one bad $δ_{i}$"),
+                           (9.45, 3.45, 2.85, "Part III: cost · Part V: replay")):
+        box(s, x, y, w, 0.34, fill=T.WHITE, line=T.TAGS["OUR FINDING"], lw=1.25, radius=0.08, text=label, size=11.5,
+            bold=True, color=T.TAGS["OUR FINDING"], pad=0.06)
+    box(s, 0.6, 6.2, 12.13, 0.72, fill=T.GOOD_T, line=T.GOOD, lw=1.25, radius=0.08)
+    tb(s, 0.85, 6.22, 11.7, 0.68, "The repair: $v_{i}, u_{i} = H_{1}, H_{2}(m_{i}‖pk_{i}‖[[grn|R_{i}]]‖id_{i}‖[[grn|T_{i}]]‖Δ)$ and "
+                                  "$h^{i}_{0} = H_{0}(id_{i}‖pk_{i}‖[[grn|R_{i}]])$. Verma's hashes contained neither commitment.",
+       size=15, anchor="m", lsp=0.95)
 
     # ------------------------------------------------------------------ 4. recap: attack and ablation
     s = d.slide("Part I · Recap 2 of 3", "The paper's attack breaks Verma; the $T_{i}$ binding stops it",
