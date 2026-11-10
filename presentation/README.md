@@ -28,3 +28,16 @@ presentation/build/render.sh 110                          # PDF and per-slide PN
 ```
 
 Fonts: Calibri, Cambria, Courier New. The PDF was rendered with metric-compatible substitutes (Carlito, Caladea, Liberation Mono).
+
+# Final presentation
+
+| File | What it is |
+|---|---|
+| `CBAS_Final_Presentation.pptx` / `.pdf` | 30 main slides (spoken route 17 min 15 s), Thank You, appendix divider, backups B1–B14. Two live demos (slides 10 and 22) with captured fallbacks. |
+| `speaker_notes_final.md` | Every slide's notes, with a `TIME:` line per main slide. |
+| `demo_fallback_final/` | Real captured output of `make attack` (Target 3), the 2×2 tests and `make nonce`. |
+| `figures/final_optimisation.png` | The optimisation chart (slide 15). |
+| `data/claims_final.json` | Every number in the final deck, written by `audit/verify_claims_final.py`, which asserts each one. |
+| `build/final_*.py`, `build/build_final.py` | The final deck's slide modules and builder. |
+
+Rebuild steps and the presenter guide: [../PRESENTATION_2_FINAL.md](../PRESENTATION_2_FINAL.md).

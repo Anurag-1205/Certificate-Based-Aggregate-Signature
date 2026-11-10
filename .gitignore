@@ -68,3 +68,6 @@ bench/kaggle/build/
 
 # Handoff notes for continuing this work (working document, not a deliverable).
 CONTEXT.md
+
+# Rendered PNGs of the final deck (rebuild with presentation/build/render.sh 110 Final).
+presentation/render_final/

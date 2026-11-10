@@ -3,7 +3,8 @@ import re, sys, collections, json, pathlib
 from pptx import Presentation
 from pptx.util import Emu
 ROOT = pathlib.Path(__file__).resolve().parents[2]
-prs = Presentation(str(ROOT / "presentation" / "CBAS_Interim_Presentation.pptx"))
+DECK = sys.argv[1] if len(sys.argv) > 1 else "Interim"
+prs = Presentation(str(ROOT / "presentation" / f"CBAS_{DECK}_Presentation.pptx"))
 W, H = prs.slide_width, prs.slide_height
 fonts = collections.Counter(); nums = collections.Counter(); problems = []
 for i, sl in enumerate(prs.slides, 1):

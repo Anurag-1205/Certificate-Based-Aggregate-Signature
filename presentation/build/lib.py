@@ -437,8 +437,12 @@ def terminal(s, x, y, w, h, lines, size=14, title=None):
 
 # ------------------------------------------------------------------ deck + slide chrome
 
+INTERIM_FOOTER = "Certificate-based aggregate signatures for IIoT · interim research presentation"
+
+
 class Deck:
-    def __init__(self, total_main: int):
+    def __init__(self, total_main: int, footer: str = INTERIM_FOOTER):
+        self.footer = footer
         self.prs = Presentation()
         self.prs.slide_width, self.prs.slide_height = Inches(T.W_IN), Inches(T.H_IN)
         self.total = total_main
@@ -460,8 +464,7 @@ class Deck:
         tb(s, 0.6, 0.58, 12.1, 0.98, title, size=title_size or 30, color=T.INK, bold=True, font=T.F_MATH, anchor="t", lsp=0.95)
         self._tags(s, tags)
         line(s, 0.6, 7.02, 12.73, 7.02, T.RULE, 1.0)
-        tb(s, 0.6, 7.08, 9, 0.25, "Certificate-based aggregate signatures for IIoT · interim research presentation",
-           size=10.5, color=T.MUTED, check=False)
+        tb(s, 0.6, 7.08, 9, 0.25, self.footer, size=10.5, color=T.MUTED, check=False)
         tb(s, 10.7, 7.08, 2.03, 0.25, (f"Backup {appendix}" if appendix else f"{CUR['slide']} / {self.total}"),
            size=10.5, color=T.MUTED, align="r", check=False)
         if notes:
@@ -493,6 +496,10 @@ class Deck:
         for sl in self.prs.slides:
             for st in list(sl.shapes._spTree.iter(qn("p:style"))):
                 st.getparent().remove(st)
+            # python-pptx marks every text box "resize shape to fit text"; some viewers (the VS Code
+            # PPTX Viewer) then misplace right-aligned text, pushing it past the slide edge
+            for af in list(sl.shapes._spTree.iter(qn("a:spAutoFit"))):
+                af.getparent().remove(af)
         self.prs.save(str(path))
 
 

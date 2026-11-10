@@ -30,6 +30,7 @@ TAGS = {
     "IMPLEMENTATION": "#7A6F63",
     "EXPERIMENT": "#4B4BB8",
     "OUR AUDIT": "#A21F6B",
+    "OUR FINDING": "#B4471B",
 }
 
 F_BODY = "Calibri"
