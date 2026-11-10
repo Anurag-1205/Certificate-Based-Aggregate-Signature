@@ -1,0 +1,49 @@
+{
+  "description": "Four repeated `make optimize` runs on the best-effort verifiers (same machine, 2026-11-10); optimization_<backend>.json holds the last one in full.",
+  "runs": {
+    "p256": [
+      {
+        "timestamp": "2026-11-10T16:49:23+0530",
+        "ratio_naive": 2.38191896876935,
+        "ratio_optimised": 2.356385656252053
+      },
+      {
+        "timestamp": "2026-11-10T16:49:59+0530",
+        "ratio_naive": 2.3185345133379722,
+        "ratio_optimised": 2.4508963300396176
+      },
+      {
+        "timestamp": "2026-11-10T16:50:34+0530",
+        "ratio_naive": 2.350476339615752,
+        "ratio_optimised": 2.3901232898135305
+      },
+      {
+        "timestamp": "2026-11-10T16:51:08+0530",
+        "ratio_naive": 2.3713029519536195,
+        "ratio_optimised": 2.401079427000344
+      }
+    ],
+    "ristretto255": [
+      {
+        "timestamp": "2026-11-10T16:49:44+0530",
+        "ratio_naive": 2.122519974820651,
+        "ratio_optimised": 2.1356073138991056
+      },
+      {
+        "timestamp": "2026-11-10T16:50:19+0530",
+        "ratio_naive": 2.2038163772561896,
+        "ratio_optimised": 2.018967411280409
+      },
+      {
+        "timestamp": "2026-11-10T16:50:54+0530",
+        "ratio_naive": 2.130739310172736,
+        "ratio_optimised": 2.084433341666405
+      },
+      {
+        "timestamp": "2026-11-10T16:51:29+0530",
+        "ratio_naive": 2.0227271845582817,
+        "ratio_optimised": 1.9920540161250928
+      }
+    ]
+  }
+}

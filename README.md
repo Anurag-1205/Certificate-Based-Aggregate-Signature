@@ -40,8 +40,8 @@ to this project.
 | 1 | Verma et al.'s CB-CAS is universally forgeable by a malicious KGC | Reproduction of the paper's Section IV-B result | [`attack.py`](src/cbas/attack.py) |
 | 2 | Verma et al.'s CB-CAS is also forgeable by a **key-only** attacker who has never observed a signature — a strictly stronger break | Original | [KEYONLY_FORGERY.md](KEYONLY_FORGERY.md) |
 | 3 | The repaired scheme's own published costs (Tables II, III) are understated by ~2×; the error also explains a discrepancy in the paper's Fig. 4 | Original | [VERIFICATION.md](VERIFICATION.md), [RESULTS.md](RESULTS.md) |
-| 4 | Realistic optimisation (native multi-scalar multiplication, cached per-signer state) *widens* the cost gap between the two schemes, from 2.4× to 3.0× | Original | [OPTIMIZATION.md](OPTIMIZATION.md) |
-| 5 | Aggregate verification has an unaddressed denial-of-service vector: one invalid signature invalidates a batch, with no way to identify which signature was at fault | Original | [AGGREGATOR.md](AGGREGATOR.md) |
+| 4 | Realistic optimisation (native multi-scalar multiplication, cached per-signer state), applied best-effort to both schemes, does *not* close the cost gap: about 2.4× before and after | Original | [OPTIMIZATION.md](OPTIMIZATION.md) |
+| 5 | One invalid signature invalidates an aggregate and hides the culprit (a known property of aggregation the paper's model omits); measured: individual verification costs only 1.7× its amortised share, so pre-verifying is cheap from about one bad signature per batch | Known property; measured policy crossover original | [AGGREGATOR.md](AGGREGATOR.md) |
 | 6 | Each of the scheme's two corrective hash bindings independently closes a different forgery; neither protects against the other's | Original | [KEYONLY_FORGERY.md](KEYONLY_FORGERY.md) |
 | 7 | A reused signing nonce gives away all of a sensor's secrets: 3 signatures for an outsider, 2 for the KGC; hedged nonces prevent it with no verifier change | Original application of a standard attack | [OPEN_ANALYSIS.md](OPEN_ANALYSIS.md) |
 | 8 | The paper's "resist replay attacks" and "perfect forward security" claims (Sec. V-C) do not hold: old signatures replay, and a key stolen later signs for earlier periods | Original | [OPEN_ANALYSIS.md](OPEN_ANALYSIS.md) |
@@ -68,7 +68,7 @@ Run in this order on a new machine:
 
 ```bash
 make selftest   # 62 group-algebra checks, both curves — depends on nothing else
-make test       # 420 tests: 197 run on both backends, 26 need no backend
+make test       # 424 tests: 199 run on both backends, 26 need no backend
 ```
 
 ## Usage
@@ -176,7 +176,7 @@ src/cbas/
   nonce_demo.py         the nonce-reuse demonstration
   demo.py               end-to-end walkthrough of the repaired scheme
   sidebyside.py         both forgeries against both schemes
-tests/                  420 tests (197 x 2 backends + 26 backend-independent)
+tests/                  424 tests (199 x 2 backends + 26 backend-independent)
 bench/
   harness.py            timing, CPU stabilisation, linear fitting
   ops.py, baseline.py, sweep.py, repeat.py, report.py, plots.py

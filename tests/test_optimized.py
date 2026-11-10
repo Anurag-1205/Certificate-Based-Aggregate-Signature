@@ -125,6 +125,7 @@ def test_prepared_roster_caches_invariants(be):
         assert ps.pk_bytes == be.point_to_bytes(signer.pk)
         assert ps.R_bytes == be.point_to_bytes(signer.R)
         assert ps.h0 == H0(be, signer.identity, signer.pk, signer.R)
+        assert be.point_eq(ps.C, be.point_add(signer.R, be.point_mul(ps.h0, params.pk_ta)))
 
 
 def test_prepared_roster_is_reusable_across_batches(be):
@@ -140,25 +141,62 @@ def test_prepared_roster_is_reusable_across_batches(be):
 
 @pytest.mark.parametrize("n", [1, 10, 100])
 def test_msm_term_counts(be, n):
-    """CBAS needs 3n+1 MSM terms to Verma's n+2 -- the source of the gap."""
-    assert MSM_TERMS["cbas"](n) == 3 * n + 1
-    assert MSM_TERMS["verma"](n) == n + 2
+    """Best-effort shapes: CBAS 2n terms (u_i C_i, v_i pk_i) to Verma's n+1."""
+    assert MSM_TERMS["cbas"](n) == 2 * n
+    assert MSM_TERMS["verma"](n) == n + 1
 
 
 def test_native_msm_is_counted_separately_from_te(be):
     """A native multi-scalar call is not expressible as a number of Te."""
     n = 8
     params, signers, messages, agg = _cbas(be, n)
+    prepared = prepare(params, signers)       # once per roster, not per batch
     with be.count() as c:
-        assert agg_verify_prepared(params, prepare(params, signers), messages, agg)
+        assert agg_verify_prepared(params, prepared, messages, agg)
     if be.has_native_msm:
         assert c.Tm == 1
-        assert c.Tm_terms == 3 * n + 1
+        assert c.Tm_terms == MSM_TERMS["cbas"](n)
         assert c.Te == 1          # only the z*P comparison
     else:
         # Fallback path: no native call, so the work shows up as Te/Ta.
         assert c.Tm == 0
         assert c.Te > n
+
+
+def test_no_scalar_one_terms_reach_the_msm(be):
+    """Coefficient-1 sums (the T_i, Verma's R) are added, never MSM terms.
+
+    Feeding them to the multi-scalar routine as scalar-one terms made the
+    optimised CBAS path slower than it needs to be and inflated the
+    CBAS/Verma ratio to ~3.0; this pins the best-effort shape for both schemes.
+    """
+    one = be.scalar_from_int(1)
+    seen = []
+    inner = be.multi_scalar_mul
+
+    def spy(base, points, scalars):
+        seen.append(list(scalars))
+        return inner(base, points, scalars)
+
+    params, signers, messages, agg = _cbas(be, 5)
+    prepared = prepare(params, signers)
+    be.multi_scalar_mul = spy
+    try:
+        assert agg_verify_prepared(params, prepared, messages, agg)
+        vp, vsigners, vmessages, vagg = _verma(be, 5)
+        assert verma_agg_verify_prepared(vp, verma_prepare(vp, vsigners), vmessages, vagg)
+    finally:
+        del be.multi_scalar_mul
+    assert [len(x) for x in seen] == [MSM_TERMS["cbas"](5), MSM_TERMS["verma"](5)]
+    assert not any(s_ == one for x in seen for s_ in x)
+
+
+def test_prepared_path_rejects_a_tampered_commitment(be):
+    params, signers, messages, agg = _cbas(be, 4)
+    T = list(agg.T)
+    T[2] = be.point_add(T[2], be.generator)
+    bad = type(agg)(T=tuple(T), z=agg.z)
+    assert not agg_verify_prepared(params, prepare(params, signers), messages, bad)
 
 
 def test_prepared_path_does_fewer_hashes(be):

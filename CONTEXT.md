@@ -189,9 +189,11 @@ These all cost real time. They are the highest-value part of this document.
 
 6. **Unequal treatment biases comparisons.** An early Phase 3 measurement applied
    the prepared roster to CBAS but only MSM to Verma, and reported 1.63 —
-   apparently showing optimisation closes the gap. The honest figure with equal
-   treatment is 3.04, in the *opposite* direction. Any scheme-vs-scheme
-   comparison must optimise both sides identically.
+   apparently showing optimisation closes the gap. A later version put the
+   scalar-one T_i into the MSM and did not cache C_i = R_i + h0*P_TA, and
+   reported ~3.0 (gap "widens"). With best-effort shapes for both schemes the
+   ratio is ~2.4 before and after. Any scheme-vs-scheme comparison must give
+   each side its best-effort implementation.
 
 7. **Check the objective is not degenerate.** The first sub-batch model maximised
    *delivery*, which is trivially optimal at `k=1` — aggregation abandoned.
@@ -256,11 +258,12 @@ self-consistent scheme, and the forgery succeeds against it. So binding the nonc
 commitment into the hashes is the operative change, not the `R`-in-`H0` binding
 nor the two-oracle split.
 
-### Claim: optimising widens the gap
+### Claim: optimising does not close the gap
 
-With MSM + prepared roster applied to **both** schemes, the per-signer ratio goes
-from 2.379 to **3.005**, tracking the MSM term ratio `3n+1 : n+2` → 2.99. The
-defence "a real implementation would batch" runs the wrong way.
+With best-effort MSM + prepared roster (scalar-one sums added, C_i cached) for
+**both** schemes, the P-256 per-signer ratio is 2.32-2.38 as specified and
+2.36-2.45 optimised over four runs: MSM terms 2n : n+1. The defence "a real
+implementation would batch" does not rescue the published parity.
 
 ---
 

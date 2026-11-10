@@ -14,19 +14,19 @@ Reproduce with `make optimize`.
 
 ## The short answer
 
-**No — optimising makes the disparity larger, not smaller.**
+**No. Optimising both schemes neither closes the gap nor widens it.**
 
 | P-256 / OpenSSL | CBAS | Verma | ratio |
 |---|---:|---:|---:|
-| naive, per signer | 169.0 us | 71.2 us | **2.375** |
-| fully optimised, per signer | 68.4 us | 22.4 us | **3.049** |
-| speedup from optimising | 2.47x | 3.17x | |
+| as specified, per signer | 169.5 us | 71.5 us | **2.371** |
+| best-effort optimised, per signer | 53.7 us | 22.4 us | **2.401** |
+| speedup from optimising | 3.15x | 3.19x | |
 
 This is the run recorded in `bench/results/optimization_p256.json`. Over four
-runs the ratio was 2.37 to 2.46 naive and 2.95 to 3.07 optimised.
+runs the ratio was 2.32 to 2.38 as specified and 2.36 to 2.45 optimised.
 
 Tables II and III, being identical for both schemes, require that ratio to be
-**1.000**. It is about 2.4 naive and about 3.0 optimised.
+**1.000**. It is about 2.4 before optimisation and about 2.4 after.
 
 ## What was optimised
 
@@ -35,6 +35,8 @@ term plus a weighted sum of points. Rearranged so the whole check is a single
 sum compared against `z*P`, it becomes exactly the shape of OpenSSL's
 `EC_POINTs_mul`, which evaluates it in one native call using an interleaved
 windowed method — instead of one crossing of the ctypes boundary per term.
+Sums whose coefficient is 1 (the `T_i`, and Verma's aggregate `R`) are added
+with plain point additions outside that call.
 
 **A prepared roster.** An industrial deployment verifies repeated batches from a
 *fixed* set of enrolled sensors. Each signer's public key encoding, certificate
@@ -44,45 +46,56 @@ unprepared path showed `point_to_bytes` alone at **25.4%** of total time — eig
 calls per signer, all recomputing the same bytes — against 19.9% for the
 multi-scalar multiplication itself.
 
+For CBAS the roster also caches the point `C_i = R_i + h0_i*P_TA`. Because
+`u_i R_i + u_i h0_i P_TA = u_i C_i`, this folds two multi-scalar terms per signer
+into one. Verma's `h0_i` already collapse into a single `P_TA` term, so it has
+no equivalent to fold.
+
 Preparing removes `H0` from the hot path entirely (`3n` hashes drop to `2n`,
 asserted by `test_prepared_path_does_fewer_hashes`) and cuts point encoding from
 eight calls per signer to one.
 
 A smaller change: scalars are kept positive and the sum compared against `z*P`,
-rather than negating all `3n+1` of them to test against the identity. One extra
-scalar multiplication is cheaper than `3n+1` field negations — worth 1.05x.
+rather than negating them all to test against the identity. One extra scalar
+multiplication is cheaper than the field negations — worth 1.05x.
 
-## Equal treatment
+## Equal treatment, and two mistakes we made
 
-Both schemes receive both optimisations. This matters: an early version of this
-measurement applied the prepared roster to CBAS but only the MSM to Verma, and
-reported a ratio of **1.63** — appearing to show that optimisation closes the
-gap. That number was an artefact of unequal treatment. Verma's `H0(id || pk)` is
-static for exactly the same reason, so it gets a prepared roster too, and the
-honest figure is **about 3.0** in the opposite direction.
+Equal treatment means each scheme gets its own best-effort implementation, and
+this study got it wrong twice, once in each direction:
 
-Comparing an optimised implementation of one scheme against an unoptimised
-implementation of the other measures the implementations, not the schemes.
+1. An early version applied the prepared roster to CBAS but only the MSM to
+   Verma, and reported a ratio of **1.63**: apparently, optimisation closes the
+   gap. Verma's `H0(id || pk)` is static for exactly the same reason, so it gets
+   a roster too.
+2. The next version fed the `T_i`, whose coefficient is 1, into the multi-scalar
+   call as `3n+1` terms, and did not cache `C_i`. It reported about **3.0**:
+   apparently, optimisation *widens* the gap. A review caught it: those terms
+   need only additions, and `C_i` is as roster-constant as `h0`. Both changes are
+   now pinned by `test_no_scalar_one_terms_reach_the_msm`.
 
-## Why the gap widens
+With both schemes in their best-effort shape the ratio is about **2.4**, the
+same as before optimisation. Comparing a careful implementation of one scheme
+against a careless one of the other measures the implementations, not the
+schemes.
 
-Verma's scheme optimises *better*. Its verification is a multi-scalar
-multiplication over `n+2` terms; this scheme's is over `3n+1`:
+## Why the gap stays
+
+In the best-effort shape, CBAS's multi-scalar call has `2n` full-scalar terms
+(`u_i C_i` and `v_i pk_i`); Verma's has `n+1` (`v_i pk_i` and one `P_TA` term):
 
 | | MSM terms | at `n = 500` |
 |---|---|---:|
-| Verma | `n + 2` | 502 |
-| CBAS | `3n + 1` | 1501 |
-| ratio | → 3 | 2.99 |
+| Verma | `n + 1` | 501 |
+| CBAS | `2n` | 1000 |
+| ratio | → 2 | 2.00 |
 
-The measured optimised ratio is **2.95 to 3.07** against a term ratio of **2.99**. As
-the per-term cost comes to dominate, the timing ratio converges on the ratio of
-term counts, which is the structural `3n+1 : n+2` difference between the two
-verification equations. The naive ratio of ~2.4 reflects the `2n+2 : n+2` scalar
-multiplication counts (2.375 measured, against 2.37 predicted once the hash
-calls are priced with their point encodings; see [RESULTS.md](RESULTS.md)); the
-optimised ratio reflects the MSM term counts. Both
-exclude parity.
+The `2n+2 : n+2` scalar-multiplication count of the naive algorithm and the
+`2n : n+1` term count of the optimised one both say that CBAS needs **two**
+full scalar multiplications per signer to Verma's **one**. The measured ratio
+sits a little above 2 in both cases (2.4 on P-256), because CBAS also does one
+more hash per signer and the `n` additions for the `T_i`; see
+[RESULTS.md](RESULTS.md) for the hash-cost model. Either way, parity is excluded.
 
 ## The signer side
 
@@ -130,16 +143,17 @@ library-independent constants, and they are not.
 ## The optimisation is a property of the library, not the scheme
 
 On Ristretto255 via libsodium there is **no** native multi-scalar routine, so
-the MSM path falls back to naive evaluation and the result is a **regression**:
+the MSM path falls back to naive evaluation and gains nothing; only the roster
+helps:
 
 | Ristretto255 / libsodium | naive | +MSM | +prepared | speedup |
 |---|---:|---:|---:|---:|
-| CBAS | 252.6 us | 253.3 us | 240.8 us | **1.05x** |
-| Verma | 118.7 us | 118.5 us | 107.9 us | 1.10x |
+| CBAS | 259.9 us | 256.3 us | 222.0 us | **1.17x** |
+| Verma | 128.5 us | 122.3 us | 111.4 us | 1.15x |
 
-Almost nothing. The ratio still moves the wrong way for the published rows
-(2.127 naive, 2.232 optimised in the recorded run; 2.12 to 2.13 and 2.23 to
-2.24 over four runs), but neither scheme gains materially.
+The ratio barely moves (2.023 naive, 1.992 optimised in the recorded run; 2.02
+to 2.20 and 1.99 to 2.14 over four runs): about 2.1 either way, again
+excluding parity.
 
 An earlier version of the fallback was *worse* than naive, at 0.85x. Expressing
 `sum(T_i)` as multi-scalar terms with scalar one meant a backend without a
@@ -149,7 +163,7 @@ implementation now adds scalar-one terms directly. It is a reminder that an
 "optimisation" written against one backend's cost profile can be a pessimisation
 on another.
 
-This is worth stating plainly: the 2.5x speedup reported above belongs to
+This is worth stating plainly: the 3x speedup reported above belongs to
 OpenSSL's `EC_POINTs_mul`, not to anything about the scheme. A deployment
 choosing a curve for this scheme should weigh the availability of a batch
 verification primitive, which is a point in P-256's favour and is not visible in

@@ -13,10 +13,12 @@ Two optimisations are applied:
    native call rather than one crossing of the ctypes boundary per term.
 2. **A prepared roster.** An industrial deployment verifies repeated batches
    from a fixed set of sensors, so each signer's public key encoding,
-   certificate-nonce encoding and ``h0`` hash are invariant and computed once.
+   certificate-nonce encoding, ``h0`` hash and (for CBAS) the point
+   ``C = R + h0*P_TA`` are invariant and computed once.
 
-Both schemes receive both optimisations. Optimising one and not the other would
-produce a ratio that describes the implementations rather than the schemes.
+Both schemes get their best-effort shape: coefficient-1 sums are plain point
+additions, never multi-scalar terms. An unequal treatment in either direction
+produces a ratio that describes the implementations rather than the schemes.
 
     python -m bench.optimization
 """
@@ -128,11 +130,11 @@ def main(backend: str = "p256", ns=None, rounds: int = 5) -> int:
     print(f"    CBAS/Verma ratio, both optimised  : {sc_p / sv_p:.3f}")
     print( "    Tables II and III require         : 1.000")
     print()
-    print( "    No. Verma's scheme optimises further, because its verification")
-    print(f"    is a multi-scalar multiplication over n+2 terms against this")
-    print( "    scheme's 3n+1, so the disparity grows rather than closing:")
+    print( "    No. With each scheme in its best-effort shape, CBAS still needs")
+    print( "    two full-scalar multi-scalar terms per signer to Verma's one:")
     print(f"      MSM terms at n=500: CBAS {MSM_TERMS['cbas'](500)}, "
           f"Verma {MSM_TERMS['verma'](500)}  (ratio {MSM_TERMS['cbas'](500) / MSM_TERMS['verma'](500):.2f})")
+    print( "    so optimisation does not close the gap the published rows deny.")
     print(RULE)
 
     RESULTS.mkdir(exist_ok=True)
