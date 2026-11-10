@@ -1,12 +1,13 @@
 PY := .venv/bin/python
 
-.PHONY: help selftest test attack bench bench-repeat optimize dos plots kaggle-kernel verify clean
+.PHONY: help selftest test attack nonce bench bench-repeat optimize dos plots kaggle-kernel verify clean
 
 help:
 	@echo "make selftest  - backend algebraic self-test (no pytest needed)"
 	@echo "make test      - full pytest suite"
 	@echo "make verify    - selftest + tests + demo + attack demo"
 	@echo "make attack    - side-by-side forgery demonstration"
+	@echo "make nonce     - key recovery from a reused nonce, and the defence"
 	@echo "make bench     - timing sweep and analysis, both backends"
 	@echo "make bench-repeat - repeated sweeps with spread"
 	@echo "make optimize  - optimised verification, both schemes"
@@ -23,6 +24,9 @@ test:
 
 attack:
 	$(PY) -m cbas.sidebyside
+
+nonce:
+	$(PY) -m cbas.nonce_demo
 
 bench:
 	$(PY) -m bench.report --backend ristretto255
@@ -50,6 +54,8 @@ verify: selftest test
 	@$(PY) -m cbas.demo
 	@echo
 	@$(PY) -m cbas.sidebyside
+	@echo
+	@$(PY) -m cbas.nonce_demo
 
 clean:
 	rm -rf .pytest_cache .hypothesis **/__pycache__ src/**/__pycache__

@@ -14,8 +14,8 @@ this talk's material.
 | Optimisation (widens the gap) | **Done** | `OPTIMIZATION.md`, `src/cbas/optimized.py` |
 | Aggregator / DoS vector | **Done** | `AGGREGATOR.md`, `src/cbas/aggregator.py` |
 | Key-only universal forgery + 2x2 ablation | **Done** | `KEYONLY_FORGERY.md`, `src/cbas/keyonly_attack.py`, `ablation_r.py` |
-| Nonce-reuse key recovery | Not started | — |
-| Forward-security claim critique | Not started | — |
+| Nonce-reuse key recovery + hedged-nonce defence | **Done** | `OPEN_ANALYSIS.md`, `src/cbas/nonce_reuse.py`, `make nonce` |
+| Forward-security and replay claims (Sec. V-C) | **Done** | `OPEN_ANALYSIS.md`, `tests/test_security_claims.py` |
 | Bandwidth / compactness quantification | Not started (optional) | — |
 | MQTT / system simulation | Not started (optional) | — |
 
@@ -161,7 +161,7 @@ asserted, on two unrelated cryptographic backends.
 
 - [ ] On `main`, up to date.
 - [ ] `make test` — confirm the full suite is green before presenting (currently
-      378 tests).
+      418 tests).
 - [ ] `make attack` — all three targets; Target 3 is the centrepiece.
 - [ ] `make optimize` — the naive-vs-optimised comparison, both schemes.
 - [ ] `make dos` — the aggregator policy table.

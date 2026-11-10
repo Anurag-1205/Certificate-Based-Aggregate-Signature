@@ -43,6 +43,8 @@ to this project.
 | 4 | Realistic optimisation (native multi-scalar multiplication, cached per-signer state) *widens* the cost gap between the two schemes, from 2.4× to 3.0× | Original | [OPTIMIZATION.md](OPTIMIZATION.md) |
 | 5 | Aggregate verification has an unaddressed denial-of-service vector: one invalid signature invalidates a batch, with no way to identify which signature was at fault | Original | [AGGREGATOR.md](AGGREGATOR.md) |
 | 6 | Each of the scheme's two corrective hash bindings independently closes a different forgery; neither protects against the other's | Original | [KEYONLY_FORGERY.md](KEYONLY_FORGERY.md) |
+| 7 | A reused signing nonce gives away all of a sensor's secrets: 3 signatures for an outsider, 2 for the KGC; hedged nonces prevent it with no verifier change | Original application of a standard attack | [OPEN_ANALYSIS.md](OPEN_ANALYSIS.md) |
+| 8 | The paper's "resist replay attacks" and "perfect forward security" claims (Sec. V-C) do not hold: old signatures replay, and a key stolen later signs for earlier periods | Original | [OPEN_ANALYSIS.md](OPEN_ANALYSIS.md) |
 
 ## Getting started
 
@@ -66,7 +68,7 @@ Run in this order on a new machine:
 
 ```bash
 make selftest   # 62 group-algebra checks, both curves — depends on nothing else
-make test       # 378 tests, every test parameterised over both backends
+make test       # 418 tests, every test parameterised over both backends
 ```
 
 ## Usage
@@ -80,6 +82,7 @@ make test       # 378 tests, every test parameterised over both backends
 | `make bench-repeat` | Repeated timing sweeps, reported with spread |
 | `make optimize` | Naive vs. optimised verification, both schemes |
 | `make dos` | Aggregator policy comparison under signature faults |
+| `make nonce` | Key recovery from a reused nonce, and the hedged-nonce defence |
 | `make plots` | Render figures from the most recent `make bench` run |
 | `make kaggle-kernel` | Build a self-contained script for a second-machine run |
 | `make verify` | Self-test, full suite, and both demonstrations |
@@ -145,6 +148,7 @@ the full 2×2 result.
 | [OPTIMIZATION.md](OPTIMIZATION.md) | Optimised verification and its effect on the cost comparison |
 | [AGGREGATOR.md](AGGREGATOR.md) | The denial-of-service vector and its mitigations |
 | [KEYONLY_FORGERY.md](KEYONLY_FORGERY.md) | The key-only forgery and the 2×2 ablation result |
+| [OPEN_ANALYSIS.md](OPEN_ANALYSIS.md) | Nonce reuse, and the paper's replay and forward-security claims |
 | [PRESENTATION_1_INTERIM.md](PRESENTATION_1_INTERIM.md) | Interim presentation outline (reproduction and correction) |
 | [PRESENTATION_2_FINAL.md](PRESENTATION_2_FINAL.md) | Final presentation outline (extensions beyond the paper) |
 
@@ -168,9 +172,11 @@ src/cbas/
   keyonly_attack.py     the key-only universal forgery
   optimized.py          multi-scalar-multiplication and prepared-roster verification
   aggregator.py         pre-verification, fault localisation, sub-batching
+  nonce_reuse.py        key recovery from a reused nonce; hedged-nonce signing
+  nonce_demo.py         the nonce-reuse demonstration
   demo.py               end-to-end walkthrough of the repaired scheme
   sidebyside.py         both forgeries against both schemes
-tests/                  378 tests, parameterised over both backends
+tests/                  418 tests, parameterised over both backends
 bench/
   harness.py            timing, CPU stabilisation, linear fitting
   ops.py, baseline.py, sweep.py, repeat.py, report.py, plots.py
