@@ -13,16 +13,18 @@ This module is the complementary control: **Fix #1 removed, Fix #2 kept**.
 nonce is no longer bound to the certificate *or* the signature -- while ``T``
 remains bound into ``H1``/``H2`` exactly as in the real scheme.
 
-``tests/test_keyonly_attack.py`` shows the *key-only* forgery of
-``keyonly_attack.py`` succeeds against this variant, while it fails against
-both the real scheme and ``ablation.py``'s variant. Read together with
-``ablation.py``, the two experiments show the corrections are independently
-necessary, each closing a different attack:
+``tests/test_keyonly_attack.py`` shows that solving for ``R``, as the key-only
+forgery of ``keyonly_attack.py`` does, succeeds against this variant. Here ``R``
+belongs to the certificate, so the forgery verifies only if the verifier
+accepts an attacker-chosen ``R``: public-key replacement, the paper's ``F1``
+capability. Solving for ``R`` fails against the real scheme and ``ablation.py``.
+Read together with ``ablation.py``, the two experiments show the corrections
+are independently necessary, each closing a different attack:
 
                | R bound (Fix #1) | R not bound
     -----------|------------------|-------------
-    T bound    | real scheme:     | this module:
-    (Fix #2)   |   both closed    |   key-only forgery open
+    T bound    | real scheme:     | this module: forgery open
+    (Fix #2)   |   both closed    |   by replacing R (pk replacement)
     -----------|------------------|-------------
     T not bound| ablation.py:     | Verma (real):
                 |   rescaling open |   both open

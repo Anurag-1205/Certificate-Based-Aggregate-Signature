@@ -90,6 +90,16 @@ Every cell is executable code, not inference:
 - **Verma**: `forge_verma_keyonly` solves for `R` (its only commitment) and
   succeeds.
 
+The two open cells are not the same kind of attack. `T` travels inside every
+signature, so solving for it (the `ablation.py` cell) is a key-only forgery
+against the victim's real public key and certificate, as it is for Verma, whose
+`R` also travels inside the signature. In the repaired scheme `R` belongs to the
+certificate, so the `ablation_r.py` forgery verifies only under an
+attacker-chosen `R`: the verifier has to accept a replaced public key. That is
+public-key replacement, the capability the paper gives its adversary `F1`, and
+the paper's own stated reason for hashing `R` (§V-A). The cell is a concrete
+test of that claim, not a key-only forgery.
+
 **Each fix is independently responsible for closing its own free variable's
 door, and does nothing to protect the other's.** This is a cleaner and more
 general statement than the project's earlier finding that "Fix #2 alone
