@@ -1,4 +1,4 @@
-"""Part I: title, roadmap, recap of the interim (slides 1-6)."""
+"""Part I: title, roadmap, the problem, recap of the interim, open questions (slides 1-7)."""
 import theme as T
 from final_common import C, N, card, num_badge, tag_pill
 from lib import arrow, box, chip, grid, party, tb, takeaway, text_width
@@ -37,19 +37,20 @@ def build(d):
 
     # ------------------------------------------------------------------ 2. roadmap
     s = d.slide("Roadmap", "From the interim to today", notes=N("""
-        SAY: The first three slides recap the interim, as asked. Then four new parts, one for each open question we listed at the end of the interim. Two live demos, on slides 10 and 22.
+        SAY: One slide on why this paper matters, then three slides recapping the interim, as asked. Then four new parts, one for each open question we listed at the end of the interim. Two live demos, on slides 11 and 22.
         AUDIENCE SHOULD GET: where we are going, and that the new work is most of the talk.
         TIME: 20 seconds. Do not read the list; point at the two columns.
         NEXT: the recap.
     """))
     box(s, 0.6, 1.7, 3.9, 4.35, fill=T.PANEL, line=None, radius=0.12)
-    tb(s, 0.85, 1.85, 3.4, 0.3, "INTERIM · RECAP", size=12.5, color=T.MUTED, bold=True, spc=120, check=False)
-    tb(s, 0.85, 2.25, 3.45, 3.7, [{"text": "Slides 3–5", "bold": True, "size": 18, "after": 8},
+    tb(s, 0.85, 1.85, 3.4, 0.3, "PROBLEM · INTERIM RECAP", size=12.5, color=T.MUTED, bold=True, spc=120, check=False)
+    tb(s, 0.85, 2.25, 3.45, 3.7, [{"text": "Slides 3–6", "bold": True, "size": 18, "after": 8},
+                                  {"text": "Why this paper matters", "after": 6},
                                   {"text": "The repaired scheme's architecture", "after": 6},
                                   {"text": "The paper's attack, reproduced, and which change in the repair stops it", "after": 6},
                                   {"text": "The paper's cost rows, recounted"}], size=16, color=T.INK)
     arrow(s, [(4.55, 3.85), (5.05, 3.85)], T.MUTED, lw=2.25)
-    parts = [("Part II", "A second look at the attack", "7–13", "Demo 1"),
+    parts = [("Part II", "A second look at the attack", "8–13", "Demo 1"),
              ("Part III", "Faster verification", "14–16", None),
              ("Part IV", "The aggregator in practice", "17–19", None),
              ("Part V", "Open analysis: nonce reuse, replay, forward security", "20–25", "Demo 2"),
@@ -62,7 +63,30 @@ def build(d):
         tb(s, 10.95, y + 0.04, 0.85, 0.69, rng, size=14, color=T.MUTED, anchor="m", align="r")
         if demo:
             chip(s, 11.88, y + 0.2, 0.75, 0.37, demo, "agg", size=11.5, bold=True)
-    takeaway(s, "Three slides of recap, then four parts of new work: one for each question we left open.")
+    takeaway(s, "The problem and a three-slide recap, then four parts of new work: one per open question.")
+
+    # ------------------------------------------------------------------ 3. why this paper matters
+    s = d.slide("Part I · The problem", "Can sensor data be signed without trusting the key authority?", tags=["PAPER"],
+                title_size=28, notes=N("""
+        SAY: The setting is an industrial plant: thousands of sensors sign their readings, an aggregator merges the signatures, and a cloud server checks them. Aggregation means one check and fewer bytes for n readings. Certificate-based signatures mean the sensor makes its own key and a key generation centre, the KGC, only certifies it, so the KGC cannot sign alone and there is no certificate lookup. The danger is the KGC itself: the paper cites an employee at South Africa's Postbank who took a master key and stole 3.2 million dollars. A good scheme must stay unforgeable even then.
+        THE STORY: Verma et al. proposed such a scheme in 2020. The paper we study, Qiao et al. 2023, shows that a malicious KGC can forge Verma signatures and proposes a repair it calls secure and as cheap as Verma's. We checked both halves of that claim, and then looked further.
+        TIME: 45 seconds.
+        NEXT: what the repaired scheme looks like.
+    """))
+    cards = [("Aggregate signatures", "n readings, one aggregate signature: one accept-or-reject check, fewer bytes sent"),
+             ("Certificate-based keys", "The sensor makes its own key; the KGC (key generation centre) only certifies it. Neither can sign alone: no key escrow, no certificate lookup"),
+             ("The threat", "The KGC holds the master key. If it leaks or turns malicious, it must still not be able to forge (the paper's example: a stolen Postbank master key, §I-C)")]
+    for i, (h, b) in enumerate(cards):
+        x = 0.6 + i * 4.095
+        card(s, x, 1.75, 3.9, 2.35, h, [b], hsize=18, bsize=15, gap=6, line=(T.BAD if i == 2 else T.RULE))
+    steps = [("2020", "Verma et al. propose a certificate-based aggregate signature for IIoT (CB-CAS)", T.MUTED),
+             ("2023", "The paper (Qiao et al.): a malicious KGC forges Verma signatures; a repair, proved secure, claimed as cheap", T.KGC),
+             ("Us", "Reproduce the attack, audit the repair's claims, and test it further: attacks, cost, deployment", T.GOOD)]
+    for i, (yr, txt, c) in enumerate(steps):
+        y = 4.3 + i * 0.6
+        box(s, 0.6, y, 1.0, 0.48, fill=c, line=None, radius=0.08, text=yr, size=15, bold=True, color="#FFFFFF")
+        tb(s, 1.8, y, 10.9, 0.48, txt, size=16, anchor="m")
+    takeaway(s, "Question: is the paper's repair as secure and as cheap as it claims, and what does it still miss?")
 
     # ------------------------------------------------------------------ 3. recap: architecture of the repaired scheme
     s = d.slide("Part I · Recap 1 of 3", "The repaired scheme: who computes and sends what", tags=["PAPER"], notes=N("""
@@ -123,16 +147,21 @@ def build(d):
     for i, (lab, name, res, cnt, kind) in enumerate(cards):
         x = 0.6 + i * 4.095
         line, fill = (T.BAD, T.BAD_T) if kind == "bad" else (T.GOOD, T.GOOD_T)
-        box(s, x, 1.75, 3.9, 3.0, fill=fill, line=line, lw=1.75, radius=0.12)
-        num_badge(s, x + 0.25, 1.95, lab, fill=line)
-        tb(s, x + 0.8, 1.93, 2.95, 0.5, name, size=17, bold=True, anchor="m")
-        tb(s, x + 0.25, 2.9, 3.4, 0.5, res, size=24, bold=True, color=line, font=T.F_MATH)
-        tb(s, x + 0.25, 3.55, 3.4, 0.4, cnt, size=17)
-    tb(s, 0.6, 4.95, 12.1, 1.0, [
-        {"text": "Attacker: a malicious KGC holding the master key and the certificate, with one observed signature (paper §IV-B).", "after": 5},
-        {"text": "Trials: 4 target messages × 2 group libraries (Ristretto255 via libsodium, NIST P-256 via OpenSSL)."}],
-       size=15, color=T.MUTED, bullets=True)
-    takeaway(s, "Removing only the $T_{i}$ binding brings the attack back, so that binding is what stops it.")
+        box(s, x, 1.75, 3.9, 2.05, fill=fill, line=line, lw=1.75, radius=0.12)
+        num_badge(s, x + 0.25, 1.92, lab, fill=line)
+        tb(s, x + 0.8, 1.9, 2.95, 0.5, name, size=17, bold=True, anchor="m")
+        tb(s, x + 0.25, 2.55, 3.4, 0.5, res, size=24, bold=True, color=line, font=T.F_MATH)
+        tb(s, x + 0.25, 3.15, 3.4, 0.4, cnt, size=17)
+    box(s, 0.6, 3.98, 12.13, 1.5, fill=T.WHITE, line=T.INK, lw=1.25, radius=0.1)
+    tb(s, 0.85, 4.04, 11.7, 1.4, [
+        {"text": "How the attack works (paper §IV-B)", "bold": True, "size": 15.5, "after": 3},
+        {"text": "Verma signs with $z_{i} = r_{2i} + c_{i} + sk_{i}v_{i}$, where $v_{i} = H_{1}(m_{i}‖pk_{i}‖id_{i}‖Δ)$ ignores the nonce commitment $R_{i}$. "
+                 "The KGC knows $c_{i}$, so it strips it and rescales the rest by $λ = v′/v_{i}$ for any new message:", "size": 15, "after": 3},
+        {"text": "$R′ = R_{1i} + λ(R_{i} − R_{1i})$,   $z′ = c_{i} + λ(z_{i} − c_{i})$: valid, without ever learning $sk_{i}$.   Full derivation: backup B15.", "size": 15}],
+       lsp=0.97)
+    tb(s, 0.6, 5.6, 12.1, 0.55, "Attacker: a malicious KGC (the paper's adversary $F_{2}$) holding the master key and the certificate, with one observed signature. "
+                               "Trials: 4 target messages × 2 group libraries.", size=13, color=T.MUTED, lsp=0.95)
+    takeaway(s, "Removing only the $T_{i}$ binding brings this attack back, so that binding is what stops it.")
 
     # ------------------------------------------------------------------ 5. recap: cost
     s = d.slide("Part I · Recap 3 of 3", "The repaired scheme costs about twice what the paper prints",
@@ -156,22 +185,25 @@ def build(d):
     tag_pill(s, 7.1, 4.17, "EXPERIMENT")
     tb(s, 7.1, 4.5, 5.45, 0.7, f"Measured per-signer ratio {rc['timing_median_lo']}–{rc['timing_median_hi']} (3 setups); "
                                "the printed rows imply 1.00.", size=15.5)
+    tb(s, 0.6, 5.45, 12.1, 0.6, "$T_{e}$ = scalar multiplication, $T_{a}$ = point addition, $T_{h}$ = hash; unit costs from the paper's Table IV "
+                               "(0.112, 0.005, 0.004 ms). Ratio = per-signer aggregate-verification cost, Qiao ÷ Verma.",
+       size=13, color=T.MUTED, lsp=0.95)
     takeaway(s, "The paper's own equation costs about twice its printed cost row.")
 
     # ------------------------------------------------------------------ 6. the four promises
     s = d.slide("Part I · What we promised", "At the interim we left four questions open. All four are answered today.",
                 tags=[], title_size=27, notes=N("""
         SAY: These are the four questions from the last slide of the interim, word for word on the left. On the right, today's one-line answer and where it is. The order of the talk differs slightly: the attack comes first, because it is the strongest result.
-        THE TAGS: the coloured pills on every slide say whose claim it is. Paper: claimed by Qiao et al. Reproduced: we re-ran it. Implementation: our design choice. Experiment: we measured it. Our audit and our finding: original to this project.
+        THE TAGS: the coloured pills on every slide say whose claim it is. Paper: claimed by Qiao et al. Reproduced: we re-ran it. Implementation: our design choice. Experiment: we measured it. Our audit and our finding: original to this project. Known techniques we only applied are labelled as such on the slide.
         TIME: 40 seconds. Read the four answers only.
         NEXT: Part II, the attack.
     """))
     rows = [("A second look at the attack", "Is the paper's attack the weakest one against Verma's scheme?",
-             "No: anyone holding just a public key can forge.", "7–13"),
+             "No: anyone holding just a public key can forge.", "8–13"),
             ("Faster verification", "Does optimisation change the cost comparison, if both schemes get it?",
-             "Yes, but the gap widens: about ×2.4 becomes ×3.0.", "14–16"),
+             "No: best-effort for both, the gap stays about ×2.4.", "14–16"),
             ("The aggregator in practice", "What happens when one signature in a batch is bad?",
-             "The whole batch fails and the culprit is hidden; we fix that.", "17–19"),
+             "The batch fails and hides the culprit; pre-verifying is cheap.", "17–19"),
             ("Open analysis", "Nonce reuse on sensors, and the forward-security claim.",
              "A repeated nonce leaks every key; two claims do not hold.", "20–25")]
     for i, (head, q, a, sl) in enumerate(rows):

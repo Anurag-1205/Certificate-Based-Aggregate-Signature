@@ -76,7 +76,6 @@ def build(d):
         num_badge(s, 0.6, 3.15 + i * 0.66, i + 1)
         tb(s, 1.15, 3.12 + i * 0.66, 3.45, 0.5, p, size=15.5, anchor="m")
     image(s, DEMO / "final_demo2_attack.png", 4.9, 1.7, w=7.83)
-    cue(s, "Terminal fails? The panel is the captured output; B13 has it larger.", x=0.6, y=5.62, w=4.0, h=0.62)
     takeaway(s, "The server sees only valid signatures, yet an outsider now signs as this sensor.", color=T.BAD)
 
     # ------------------------------------------------------------------ 23. the fix

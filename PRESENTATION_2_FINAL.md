@@ -4,11 +4,11 @@ The deck is [presentation/CBAS_Final_Presentation.pptx](presentation/CBAS_Final_
 (PDF beside it). Speaker notes for every slide, including a timed route, are in the deck and in
 [presentation/speaker_notes_final.md](presentation/speaker_notes_final.md).
 
-- **Format:** 30 main slides, then Thank You (slide 31), an appendix divider, and backups B1–B14.
-- **Time:** the route in the notes adds up to **17 min 25 s**. That leaves room in a 15–20 minute
+- **Format:** 30 main slides, then Thank You (slide 31), an appendix divider, and backups B1–B16 (B15: the paper's attack step by step; B16: references).
+- **Time:** the route in the notes adds up to **18 min 05 s**. That leaves room in a 15–20 minute
   slot for a slow demo or one question mid-talk. Each slide's notes end with a `TIME:` line that
   gives the seconds for that slide and the clock at its end.
-- **Demos:** two live demos, on slides 10 and 22. Each demo slide also shows the captured output of
+- **Demos:** two live demos, on slides 11 and 22. Each demo slide also shows the captured output of
   the same command, so a failed terminal costs nothing.
 
 ## Slide map
@@ -16,22 +16,23 @@ The deck is [presentation/CBAS_Final_Presentation.pptx](presentation/CBAS_Final_
 | Slides | Part | Content | Tags |
 |---|---|---|---|
 | 1–2 | Opening | Title; roadmap from the interim to today | |
-| 3–5 | I · Recap (as the TAs asked) | The repaired scheme's architecture (who computes and sends what, and where Parts III–V land); the paper's attack reproduced, and the T-binding ablation; the cost rows about ×2 too low | PAPER, REPRODUCED, OUR AUDIT, EXPERIMENT |
-| 6 | I · Promises | The four open questions from interim slide 27, each answered; the tag legend | |
-| 7–13 | II · A second look at the attack | Key-only universal forgery on Verma; it contradicts Table II; **Demo 1**; why the repair resists it; the 2×2; the general lesson | OUR FINDING, EXPERIMENT |
-| 14–16 | III · Faster verification | Equal treatment, and the 1.63 artefact; the gap widens from ×2.4 to ×3.0; library dependence; the P-256 residual explained | IMPLEMENTATION, EXPERIMENT, OUR AUDIT |
-| 17–19 | IV · The aggregator | One bad signature sinks a batch; BLIND / PREVERIFY / RETAIN; which policy when | OUR FINDING, EXPERIMENT |
+| 3 | I · The problem | Aggregate and certificate-based signatures, the malicious-KGC threat; 2020 → 2023 → us | PAPER |
+| 4–6 | I · Recap (as the TAs asked) | The repaired scheme's architecture (who computes and sends what, and where Parts III–V land); the paper's attack and how it works (derivation in B15) reproduced, and the T-binding ablation; the cost rows about ×2 too low | PAPER, REPRODUCED, OUR AUDIT, EXPERIMENT |
+| 7 | I · Promises | The four open questions from interim slide 27, each answered; the tag legend | |
+| 8–13 | II · A second look at the attack | Key-only universal forgery on Verma; it contradicts Table II; **Demo 1**; why the repair resists it; the 2×2; the general lesson | OUR FINDING, EXPERIMENT |
+| 14–16 | III · Faster verification | Equal treatment, and the two mistakes we caught (×1.63, ×3.0); best-effort optimisation leaves the gap at ×2.4; library dependence; the P-256 residual explained | IMPLEMENTATION, EXPERIMENT, OUR AUDIT |
+| 17–19 | IV · The aggregator | One bad signature sinks a batch; BLIND / PREVERIFY / RETAIN; which policy when | PAPER, EXPERIMENT, OUR FINDING (the crossover) |
 | 20–25 | V · Open analysis | Nonce reuse (3 signatures, or 2 for the KGC); **Demo 2**; hedged nonces; the replay claim; the forward-security claim | OUR FINDING, EXPERIMENT |
-| 26–30 | VI · Close | Evidence (420 tests, two libraries, audit script); all results; what the paper gets right; scope; three things to remember | |
+| 26–30 | VI · Close | Evidence (424 tests, two libraries, audit script); all results; what the paper gets right; scope; three things to remember | |
 
 ## Demos
 
 | Slide | Command | Runtime | Point at | Fallback |
 |---|---|---|---|---|
-| 10 | `make attack`, scroll to TARGET 3 | ~2 s | attacker sees only `pk_TA` and `pk`; `forged sig verifies: True`; repaired scheme `False` | panel on slide 10; larger on B13 |
+| 11 | `make attack`, scroll to TARGET 3 | ~2 s | attacker sees only `pk_TA` and `pk`; `forged sig verifies: True`; repaired scheme `False` | panel on slide 11; larger on B13 |
 | 22 | `make nonce` | ~1 s | same `T` three times; recovered `sk` and `c`: True; `KEYS STOLEN`; KGC needs two | panel on slide 22; larger on B13; step 4 is on slide 23 |
 
-Before presenting, run `make test` (420 tests) and both demo commands once on the presentation
+Before presenting, run `make test` (424 tests) and both demo commands once on the presentation
 machine.
 
 ## Rebuilding
@@ -41,7 +42,7 @@ python3 -m venv /tmp/deckenv && /tmp/deckenv/bin/pip install python-pptx pillow
 .venv/bin/python presentation/audit/verify_claims_final.py     # asserts every number in the deck
 .venv/bin/python presentation/build/make_figures_final.py
 .venv/bin/python presentation/build/make_demo_fallback_final.py  # runs both demos, captures output
-/tmp/deckenv/bin/python presentation/build/build_final.py        # --no-cues omits presenter cues
+/tmp/deckenv/bin/python presentation/build/build_final.py        # presenter cues off; --cues shows them
 /tmp/deckenv/bin/python presentation/build/qc.py Final
 /tmp/deckenv/bin/python presentation/build/export_notes.py Final 31
 presentation/build/render.sh 110 Final                            # PDF and PNGs in presentation/render_final/
@@ -67,9 +68,11 @@ builds unchanged with `build_deck.py`.
 ## Corrections made since the September plan
 
 - The aggregator crossover is stated as "about one bad signature per batch of 200 (0.5%)".
-  Individual verification is 1.8× dearer per signature, not 2×.
-- The optimisation ratios are quoted as a range over four runs: 2.37–2.46 as specified and
-  2.95–3.07 optimised, on P-256.
+  Individual verification is 1.7× dearer per signature (best-effort verifier), not 2×.
+- The optimised CBAS verifier no longer feeds the scalar-one `T_i` to the multi-scalar call and
+  caches `C_i = R_i + h0*P_TA`. Best-effort for both schemes, the P-256 ratio is 2.32–2.38 as
+  specified and 2.36–2.45 optimised over four runs: optimisation does not close the gap, and
+  the earlier "widens to ×3.0" claim is withdrawn.
 - The P-256 timing residual is explained by the point encodings inside the hash calls
   (`bench/hashcost.py`), not by interpreter overhead.
 - Xiong et al. is not cited as corroboration.

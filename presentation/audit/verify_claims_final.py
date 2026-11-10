@@ -236,9 +236,16 @@ for b in ("p256", "ristretto255"):
     opt[b] = {"ratio_naive": round(d["ratio_naive"], 4), "ratio_optimised": round(d["ratio_optimised"], 4),
               "slopes": {s: {k_: round(v, 1) for k_, v in d["slopes_us_per_signer"][s].items()} for s in ("cbas", "verma")},
               "msm_terms": d["msm_terms"], "native_msm": d["native_msm"], "timestamp": d["timestamp"]}
-ok(opt["p256"]["ratio_optimised"] > opt["p256"]["ratio_naive"] > 2.3, "P-256: the ratio grows when both schemes are optimised")
-ok(opt["ristretto255"]["ratio_optimised"] > opt["ristretto255"]["ratio_naive"], "Ristretto255: the ratio still grows")
-ok(opt["p256"]["msm_terms"] == {"cbas": 1501, "verma": 502}, "MSM terms at n=500: 1501 vs 502 (3n+1 vs n+2)")
+runs = json.loads((RESULTS / "optimization_runs.json").read_text())["runs"]
+for b in ("p256", "ristretto255"):
+    rs = runs[b]
+    opt[b]["range"] = {k: [round(min(r[k] for r in rs), 2), round(max(r[k] for r in rs), 2)]
+                       for k in ("ratio_naive", "ratio_optimised")}
+    opt[b]["runs"] = len(rs)
+    ok(all(abs(r["ratio_optimised"] - r["ratio_naive"]) < 0.25 and r["ratio_optimised"] > 1.9 for r in rs),
+       f"{b}: optimising both schemes leaves the ratio where it was (all {len(rs)} runs within 0.25, all > 1.9)")
+ok(opt["p256"]["msm_terms"] == {"cbas": 1000, "verma": 501}, "MSM terms at n=500: 1000 vs 501 (2n vs n+1)")
+ok(opt["p256"]["native_msm"] and not opt["ristretto255"]["native_msm"], "native MSM on P-256 only")
 claims["optimisation"] = opt
 
 # ---------------------------------------------------------------- 7. test and self-test counts

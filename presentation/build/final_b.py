@@ -1,4 +1,4 @@
-"""Part II: a second look at the attack (slides 7-13)."""
+"""Part II: a second look at the attack (slides 8-13)."""
 import theme as T
 from final_common import C, DEMO, N, card, num_badge, tag_pill, verdict
 from lib import box, chip, cue, grid, image, party, tb, takeaway, terminal
@@ -65,7 +65,8 @@ def build(d):
     takeaway(s, "A forgery from public values alone: no secret, no observed signature, no discrete logarithm.", color=T.BAD)
 
     # ------------------------------------------------------------------ 9. contradicts Table II
-    s = d.slide("Part II · Against the paper's own table", "This contradicts the paper's Table II",
+    s = d.slide("Part II · Against the paper's own table", "This contradicts the paper's Table II, for Verma's scheme as the paper describes it",
+                title_size=26,
                 tags=["PAPER", "OUR FINDING"], notes=N(f"""
         SAY: The paper's Table II rates Verma's scheme, reference 11, as secure against F_1, the malicious user, and insecure against F_2, the malicious KGC. The F_2 entry is the paper's own attack, which we reproduced. The F_1 entry cannot be right: our forger has strictly less power than F_1, since F_1 may also ask for keys and signatures. Whatever a key-only forger can do, F_1 can do too.
         RESULT: {ko['verma_forged']} of {k} key-only forgeries verify (4 messages, 2 libraries), and {ko['verma_agg']} of {k} also pass aggregate verification next to an honest signature.
@@ -77,12 +78,14 @@ def build(d):
             [{"text": "Scheme [11], Verma et al.", "bold": True}, "$1T_{e} + 1T_{h}$", "$3T_{e} + 2T_{a} + 2T_{h}$",
              {"text": "Yes", "bold": True, "fill": T.BAD_T, "color": T.BAD, "align": "c"}, {"text": "No", "align": "c"}]]
     grid(s, 0.6, 1.8, [3.4, 1.9, 2.6, 2.13, 2.1], [0.48, 0.62], rows, size=17, hdr_size=11.5)
-    tb(s, 0.6, 3.0, 12.1, 0.3, "Source: Qiao et al., Table II, row for scheme [11].", size=12.5, color=T.MUTED)
-    card(s, 0.6, 3.5, 5.9, 2.5, "Secure against $F_{2}$: No", ["Correct. The paper's own attack (§IV-B), which we reproduced at the interim: 8 / 8."],
+    tb(s, 0.6, 2.98, 12.1, 0.45, "$F_{1}$ = malicious user: may replace public keys and ask for signatures, never holds the master key.  "
+                               "$F_{2}$ = malicious KGC: holds the master key, so every certificate, never a user's secret key (paper §III).  "
+                               "Source: Qiao et al., Table II, row [11].", size=12.5, color=T.MUTED, lsp=0.95)
+    card(s, 0.6, 3.6, 5.9, 2.4, "Secure against $F_{2}$: No", ["Correct. The paper's own attack (§IV-B), which we reproduced at the interim: 8 / 8."],
          tag="REPRODUCED", hsize=18, bsize=16)
-    card(s, 6.83, 3.5, 5.9, 2.5, "Secure against $F_{1}$: Yes", [f"Not correct. A forger with less power than $F_{{1}}$ succeeds: {ko['verma_forged']} / {k}, and {ko['verma_agg']} / {k} inside an aggregate."],
+    card(s, 6.83, 3.6, 5.9, 2.4, "Secure against $F_{1}$: Yes", [f"Not correct. A forger with less power than $F_{{1}}$ succeeds: {ko['verma_forged']} / {k}, and {ko['verma_agg']} / {k} inside an aggregate."],
          tag="OUR FINDING", line=T.BAD, lw=1.75, hsize=18, bsize=16)
-    takeaway(s, "Verma's scheme is broken by anyone, not only by a malicious KGC.", color=T.BAD)
+    takeaway(s, "As the paper specifies it (§IV-A), Verma's scheme is broken by anyone, not only by a malicious KGC.", color=T.BAD)
 
     # ------------------------------------------------------------------ 10. demo 1
     s = d.slide("Part II · Demo 1", "Demo 1: a forgery from a public key alone", tags=["EXPERIMENT"], notes=N(f"""
@@ -105,7 +108,6 @@ def build(d):
                                      (f"{ko['verma_agg']} / {k} pass aggregate verification", "bad"),
                                      (f"{ko['qiao_forged']} / {k} against the repaired scheme", "good"))):
         chip(s, 0.6 + i * 4.095, 5.45, 3.9, 0.55, txt, kind, size=15, bold=True)
-    cue(s, "Terminal fails? This slide's panel shows the output; B13 has it larger.", x=8.2, y=4.65, w=4.53, h=0.62)
     takeaway(s, "A real sensor's key, no secrets, no observed signature: the forgery verifies.", color=T.BAD)
 
     # ------------------------------------------------------------------ 11. why the repair resists
@@ -141,7 +143,8 @@ def build(d):
         THE CAVEAT, important: the two open doors are not the same kind of attack. T travels in every signature, so the bottom-left forgery is a true key-only forgery. In Qiao's scheme R belongs to the certificate, so the top-right forgery only verifies if the verifier accepts an attacker-chosen R: {ko['r_cell_needs_replaced_R']} of {k} fail with the real R. That is public-key replacement, the power the paper gives F_1, and it is exactly why the paper says it hashes R. So that cell confirms the paper's reason, with code.
         TIME: 1 minute 15 seconds.
         IF ASKED 'so is R in the hash really needed?': against an attacker who can replace R, yes; this cell shows it. Against a verifier that pins each sensor's R, the T binding alone blocks both attempts here.
-        NEXT: the general lesson.
+        THE LESSON (bottom band): one rule explains every cell. If a value appears in the verification equation with a known coefficient but in no hash, an attacker fixes everything else and solves for it. The paper states this rule for T only (section V-A, in the context of its one attack); the 2 by 2 shows the same mechanism for either commitment.
+        NEXT: Part III, cost.
     """))
     colw = [2.6, 4.75, 4.75]
     rows = [[{"text": ""}, {"text": "$R$ HASHED"}, {"text": "$R$ NOT HASHED"}],
@@ -151,31 +154,12 @@ def build(d):
             [{"text": "$T$ not hashed", "bold": True},
              {"text": f"**T removed**: solve for $T$ forges {ko['t_cell']} / {k}\nwith the real certificate: key-only", "fill": T.BAD_T},
              {"text": "**Verma**: solve for $R$ forges\n$R$ travels in the signature: key-only", "fill": T.BAD_T}]]
-    grid(s, 0.6, 1.75, colw, [0.5, 1.45, 1.45], rows, size=16, hdr_size=12.5, valign="m")
-    tb(s, 0.6, 5.3, 12.1, 0.75, [
-        {"text": f"In each broken variant, the other attempt still fails ({ko['t_cell_r_safe']} / {k} and {ko['r_cell_t_safe']} / {k}). "
-                 "Code: ablation.py removes $T$, ablation_r.py removes $R$; nothing else changes.", "after": 2},
-        {"text": f"The top-right forgery fails under the real certificate $R$ in {ko['r_cell_needs_replaced_R']} / {k} trials."}],
-       size=14, color=T.MUTED)
-    takeaway(s, "Hashing $T$ and hashing $R$ are both needed; each blocks a different attack.")
-
-    # ------------------------------------------------------------------ 13. the lesson
-    s = d.slide("Part II · The lesson", "A commitment outside every hash is a free variable", tags=["PAPER", "OUR FINDING"], notes=N("""
-        SAY: One rule explains every cell. If a value appears in the verification equation but in no hash, and its coefficient is known, an attacker can choose everything else and solve for it. Verma leaves R free. Removing the T binding leaves T free. Removing the R binding leaves R free, for an attacker who may replace it.
-        THE PAPER: states this rule for T only, in section V-A, in the context of the one attack it found. We show the same mechanism for either commitment, independently.
-        TIME: 30 seconds.
-        NEXT: Part III, cost.
-    """))
-    box(s, 0.6, 1.75, 12.13, 1.45, fill=T.INK, line=None, radius=0.12)
-    tb(s, 0.95, 1.85, 11.5, 1.25, "If a value appears in the verification equation with a known coefficient, but in no hash, "
-                                  "an attacker can fix everything else and solve for it.", size=23, color="#FFFFFF", bold=True,
-       font=T.F_MATH, anchor="m", lsp=0.95)
-    ex = [("Verma et al.", "$R$ in no hash", "key-only forgery"),
-          ("Qiao without $T$ binding", "$T$ in no hash", "key-only forgery"),
-          ("Qiao without $R$ binding", "$R$ in no hash", "forgery by replacing $R$")]
-    for i, (a, b, c_) in enumerate(ex):
-        x = 0.6 + i * 4.095
-        card(s, x, 3.45, 3.9, 1.6, a, [b, c_], line=T.BAD, hsize=17, bsize=16)
-    tb(s, 0.6, 5.25, 12.1, 0.8, "The paper (§V-A) states the rule for $T_{i}$ alone: “the promised value $T_{i}$ … should be used to generate the core element of signature … Otherwise, any malicious KGC can … forge.”",
-       size=14, color=T.MUTED, lsp=0.97)
-    takeaway(s, "Hash every commitment that appears in the verification equation.")
+    grid(s, 0.6, 1.65, colw, [0.45, 1.2, 1.2], rows, size=16, hdr_size=12.5, valign="m")
+    tb(s, 0.6, 4.58, 12.1, 0.55, f"In each broken variant the other attempt still fails ({ko['t_cell_r_safe']} / {k}, {ko['r_cell_t_safe']} / {k}); "
+                               f"the top-right forgery fails under the real certificate $R$ ({ko['r_cell_needs_replaced_R']} / {k}). "
+                               "Code: ablation.py removes $T$, ablation_r.py removes $R$; nothing else changes.", size=13, color=T.MUTED, lsp=0.95)
+    box(s, 0.6, 5.2, 12.13, 0.92, fill=T.INK, line=None, radius=0.1)
+    tb(s, 0.9, 5.22, 11.6, 0.88, "The lesson: a value in the verification equation with a known coefficient but in no hash is a free variable, "
+                                "and can be solved for. The paper (§V-A) states this for $T_{i}$ only.", size=16.5, color="#FFFFFF",
+       bold=True, anchor="m", lsp=0.95)
+    takeaway(s, "Hash every commitment in the verification equation: here, both $T$ and $R$.")

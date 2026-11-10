@@ -45,7 +45,7 @@ def source(fig, text):
 # ------------------------------------------------------------------ optimisation, P-256
 o = C["optimisation"]["p256"]["slopes"]
 stages = [("naive", "As specified\n(one call per term)"), ("msm", "+ multi-scalar\nmultiplication"),
-          ("prepared", "+ prepared\nsensor roster")]
+          ("prepared", "+ prepared roster\n(cached $h_0$, $C_i$)")]
 q = np.array([o["cbas"][k] for k, _ in stages])
 v = np.array([o["verma"][k] for k, _ in stages])
 fig, ax = plt.subplots(figsize=(7.2, 4.6))
@@ -62,12 +62,14 @@ for i in range(3):
 ax.set_xticks(x, [lab for _, lab in stages], fontsize=13)
 ax.set_ylim(0, 215)
 ax.set_ylabel("Aggregate verification, µs per signer")
-ax.set_title("Same optimisations for both schemes, P-256 / OpenSSL")
+ax.set_title("Best-effort optimisation for both schemes, P-256 / OpenSSL")
 ax.legend(frameon=False, fontsize=12.5, loc="upper right")
 ax.grid(axis="y", alpha=0.25)
 ax.set_axisbelow(True)
 source(fig, f"Source: bench/results/optimization_p256.json (run {C['optimisation']['p256']['timestamp'][:10]}), "
-            "slope of a linear fit over n = 50 … 500. Four runs: ratio 2.37–2.46 as specified, 2.95–3.07 fully optimised.")
+            "slope of a linear fit over n = 50 … 500. "
+            f"{C['optimisation']['p256']['runs']} runs: ratio {C['optimisation']['p256']['range']['ratio_naive'][0]:.2f}–{C['optimisation']['p256']['range']['ratio_naive'][1]:.2f} as specified, "
+            f"{C['optimisation']['p256']['range']['ratio_optimised'][0]:.2f}–{C['optimisation']['p256']['range']['ratio_optimised'][1]:.2f} best-effort optimised.")
 fig.savefig(FIG / "final_optimisation.png", facecolor="white")
 plt.close(fig)
 print("wrote presentation/figures/final_optimisation.png")

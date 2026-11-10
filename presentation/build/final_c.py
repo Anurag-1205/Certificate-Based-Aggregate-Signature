@@ -12,50 +12,52 @@ def build(d):
     # ------------------------------------------------------------------ 14. the objection
     s = d.slide("Part III · Faster verification", "Would a real implementation close the gap?",
                 tags=["IMPLEMENTATION", "EXPERIMENT"], notes=N("""
-        SAY: A fair objection to the interim: nobody verifies term by term. A real verifier would batch the work. So we optimised verification twice, and gave both schemes exactly the same treatment.
-        THE TWO OPTIMISATIONS: one, multi-scalar multiplication: the whole verification equation evaluated in a single native call, OpenSSL's EC_POINTs_mul, instead of one call per term. Two, a prepared sensor roster: an industrial fleet is fixed, so each sensor's encodings and its certificate hash h_0 never change and can be computed once.
-        THE MISTAKE WE CAUGHT: our first measurement gave the roster to Qiao's scheme but not to Verma's, and showed a ratio of 1.63, as if optimising closed the gap. That was unequal treatment. With both schemes optimised the same way, the ratio is about 3.
+        SAY: A fair objection: nobody verifies term by term. A real verifier would batch the work. So we optimised verification, and gave each scheme its best-effort implementation.
+        THE TWO OPTIMISATIONS: one, multi-scalar multiplication: the whole verification equation evaluated in a single native call, OpenSSL's EC_POINTs_mul, instead of one call per term; sums with coefficient 1 (Qiao's T_i, Verma's aggregate R) are plain point additions. Two, a prepared sensor roster: an industrial fleet is fixed, so each sensor's encodings, its certificate hash h_0 and, for Qiao, the point C_i = R_i + h_0 P_TA never change and are computed once.
+        TWO MISTAKES WE CAUGHT, one in each direction: first, the roster went to Qiao's scheme only, and the ratio showed 1.63, as if optimising closed the gap. Then Qiao's scalar-one T_i went into the multi-scalar call and C_i was not cached, and the ratio showed about 3.0, as if optimising widened it. A review caught the second. With best effort on both sides, neither holds.
         TIME: 45 seconds.
         NEXT: the numbers.
     """))
     card(s, 0.6, 1.75, 5.9, 2.25, "① Multi-scalar multiplication",
-         ["Evaluate the whole check $zP = Σ…$ in one native call (OpenSSL `EC_POINTs_mul`), not one call per term."],
+         ["One native call (OpenSSL `EC_POINTs_mul`) for the whole check, not one call per term. Sums with coefficient 1 ($ΣT_{i}$, Verma's $R$) are plain additions."],
          tag="IMPLEMENTATION", hsize=18, bsize=16)
     card(s, 6.83, 1.75, 5.9, 2.25, "② A prepared sensor roster",
-         ["A factory's sensors are fixed, so each one's encodings and $h_{0}$ are computed once, not per batch."],
+         ["A factory's sensors are fixed, so encodings, $h_{0}$ and, for Qiao, $C_{i} = R_{i} + h_{0}P_{TA}$ are computed once, not per batch."],
          tag="IMPLEMENTATION", hsize=18, bsize=16)
     box(s, 0.6, 4.25, 12.13, 1.8, fill=T.AGG_T, line=T.AGG, lw=1.5, radius=0.1)
     tb(s, 0.85, 4.35, 11.6, 1.6, [
-        {"text": "A mistake we caught: equal treatment", "bold": True, "size": 18, "after": 6},
-        {"text": "Our first version gave the roster to Qiao's scheme only and showed a ratio of ×1.63, as if optimising closed the gap.", "size": 16, "after": 4},
-        {"text": "Verma's $h_{0}$ is just as fixed. With both schemes optimised the same way, the ratio goes the other way.", "size": 16}],
+        {"text": "Two mistakes we caught: equal treatment means best effort for each scheme", "bold": True, "size": 18, "after": 6},
+        {"text": "×1.63: the roster went to Qiao only. It looked as if optimising closes the gap.", "size": 16, "after": 4},
+        {"text": "×3.0: Qiao's coefficient-1 $T_{i}$ went into the multi-scalar call and $C_{i}$ was not cached. It looked as if the gap widens.", "size": 16}],
        lsp=0.97)
-    takeaway(s, "Both optimisations, applied to both schemes.")
+    takeaway(s, "Both optimisations, each scheme in its best shape. Our earlier numbers missed that twice.")
 
     # ------------------------------------------------------------------ 15. the result
-    s = d.slide("Part III · The result", f"Optimising both schemes widens the gap: ×{p['ratio_naive']:.1f} → ×{p['ratio_optimised']:.1f}",
+    s = d.slide("Part III · The result", f"Optimisation does not close the gap: ×{p['ratio_naive']:.1f} before, ×{p['ratio_optimised']:.1f} after",
                 tags=["EXPERIMENT", "OUR AUDIT"], notes=N(f"""
-        SAY: Per-signer cost of aggregate verification on P-256, both schemes, three stages. As specified: {p['slopes']['cbas']['naive']:.0f} against {p['slopes']['verma']['naive']:.0f} microseconds, ratio {p['ratio_naive']:.2f}. Fully optimised: {p['slopes']['cbas']['prepared']:.0f} against {p['slopes']['verma']['prepared']:.0f}, ratio {p['ratio_optimised']:.2f}. Over four runs the optimised ratio was 2.95 to 3.07.
-        WHY IT GROWS: once everything is one multi-scalar multiplication, cost follows the number of terms. Qiao's equation has 3n + 1 terms, Verma's n + 2: at n = 500, {p['msm_terms']['cbas']} against {p['msm_terms']['verma']}, a ratio of 2.99. The measured ratio converges to the term ratio.
-        AUDIENCE SHOULD GET: the paper's "same cost as Verma" claim moves further from the truth in a good implementation, not closer.
+        SAY: Per-signer cost of aggregate verification on P-256, both schemes, three stages. As specified: {p['slopes']['cbas']['naive']:.0f} against {p['slopes']['verma']['naive']:.0f} microseconds, ratio {p['ratio_naive']:.2f}. Fully optimised: {p['slopes']['cbas']['prepared']:.0f} against {p['slopes']['verma']['prepared']:.0f}, ratio {p['ratio_optimised']:.2f}. Both get about three times faster, so the ratio stays where it was. Over {p['runs']} runs: {p['range']['ratio_naive'][0]:.2f} to {p['range']['ratio_naive'][1]:.2f} as specified, {p['range']['ratio_optimised'][0]:.2f} to {p['range']['ratio_optimised'][1]:.2f} optimised.
+        WHY IT STAYS: once everything is one multi-scalar multiplication, cost follows the full-scalar terms. Qiao needs two per signer, u_i C_i and v_i pk_i: 2n terms. Verma needs one, v_i pk_i, plus one P_TA term: n + 1. At n = 500, {p['msm_terms']['cbas']} against {p['msm_terms']['verma']}, a ratio of 2.00; Qiao's extra hash per signer and its n additions take the measured ratio to about 2.4.
+        AUDIENCE SHOULD GET: the paper's "same cost as Verma" claim, a ratio of 1.00, is not rescued by a good implementation.
+        IF ASKED 'didn't you report 3.0 before?': yes; that verifier put Qiao's coefficient-1 T_i into the multi-scalar call. Previous slide.
+        IF ASKED about the middle bar (ratio about 2.6): with the multi-scalar call alone, Qiao still recomputes h_0 and its point encodings for every batch; the prepared roster removes that.
         TIME: 1 minute.
         IF ASKED 'why P-256?': it has a native multi-scalar routine; Ristretto255 in libsodium does not (next slide).
     """))
     image(s, FIG / "final_optimisation.png", 0.6, 1.62, w=7.3)
     box(s, 8.2, 1.75, 4.53, 4.3, fill=T.PANEL, line=None, radius=0.1)
     tb(s, 8.45, 1.9, 4.1, 4.05, [
-        {"text": "Why the gap grows", "bold": True, "size": 18, "after": 8},
-        {"text": "Optimised, the cost follows the number of terms in one big sum.", "size": 16, "after": 8},
-        {"text": "Qiao: $3n + 1$ terms", "size": 17, "after": 2},
-        {"text": "Verma: $n + 2$ terms", "size": 17, "after": 6},
-        {"text": f"At $n = 500$: {p['msm_terms']['cbas']} vs {p['msm_terms']['verma']}, ratio 2.99", "size": 16, "after": 8},
-        {"text": "The measured ratio approaches the term ratio, not 1.", "size": 16, "color": T.MUTED}], lsp=0.97)
-    takeaway(s, "A good implementation moves the paper's “same cost” claim further from the truth.")
+        {"text": "Why the gap stays", "bold": True, "size": 18, "after": 8},
+        {"text": "Optimised, cost follows the full-scalar terms in one sum.", "size": 16, "after": 8},
+        {"text": "Qiao: $2n$ terms ($u_{i}C_{i}$, $v_{i}pk_{i}$)", "size": 16.5, "after": 2},
+        {"text": "Verma: $n + 1$ terms ($v_{i}pk_{i}$, one $P_{TA}$)", "size": 16.5, "after": 6},
+        {"text": f"At $n = 500$: {p['msm_terms']['cbas']} vs {p['msm_terms']['verma']}, ratio 2.00", "size": 16, "after": 8},
+        {"text": f"Plus one more hash per signer: measured ×{p['range']['ratio_optimised'][0]:.2f}–{p['range']['ratio_optimised'][1]:.2f} over {p['runs']} runs, never 1.", "size": 16, "color": T.MUTED}], lsp=0.97)
+    takeaway(s, "A good implementation speeds up both schemes alike; the paper's “same cost” claim still fails.")
 
     # ------------------------------------------------------------------ 16. library matters
     s = d.slide("Part III · The library matters", "Which optimisation pays depends on the library",
                 tags=["EXPERIMENT", "OUR AUDIT"], notes=N(f"""
-        SAY: On Ristretto255 through libsodium there is no native multi-scalar routine, so optimising barely helps either scheme, and the ratio still rises: {r['ratio_naive']:.2f} to {r['ratio_optimised']:.2f}. The two libraries also store points differently: libsodium keeps a point as its 32-byte encoding, so encoding is nearly free and addition is expensive; OpenSSL keeps coordinates, so addition is cheap and encoding costs a modular inversion.
+        SAY: On Ristretto255 through libsodium there is no native multi-scalar routine, so only the prepared roster helps, and the ratio barely moves: {r['ratio_naive']:.2f} to {r['ratio_optimised']:.2f} in the recorded run, {r['range']['ratio_naive'][0]:.2f} to {r['range']['ratio_naive'][1]:.2f} and {r['range']['ratio_optimised'][0]:.2f} to {r['range']['ratio_optimised'][1]:.2f} over {r['runs']} runs. The two libraries also store points differently: libsodium keeps a point as its 32-byte encoding, so encoding is nearly free and addition is expensive; OpenSSL keeps coordinates, so addition is cheap and encoding costs a modular inversion.
         THE INTERIM'S OPEN POINT: at the interim, P-256 timing was about 20 percent above what the operation counts predicted. This explains it. Every hash call encodes its point inputs: Qiao's verification encodes 8 points per signer, Verma's 2; a test counts them. On P-256 that is expensive. Pricing the real hash calls predicts 2.363 to 2.371, and we measured 2.366. It was not interpreter overhead.
         TIME: 45 seconds.
         NEXT: Part IV, the aggregator.
@@ -79,10 +81,11 @@ def build(d):
 
     # ------------------------------------------------------------------ 17. one bad signature
     s = d.slide("Part IV · The aggregator in practice", "One bad signature sinks the whole batch",
-                tags=["PAPER", "OUR FINDING"], notes=N(f"""
+                tags=["PAPER", "EXPERIMENT"], notes=N(f"""
         SAY: The paper treats the aggregator as harmless: in its words, it does not use its own private information, it only merges signatures. That is true, and it is why aggregation is secure. But merging is a sum: z is the sum of the z_i. If one signature is bad, from a faulty sensor, a corrupted link or an attacker, the whole aggregate fails, and the sum no longer tells you which one.
         TEST: one corrupted signature in a batch of {ag['n_locate']}: the aggregate fails verification. Nothing in the aggregate identifies the culprit.
         FRAMING: availability, not forgery. The security proof is untouched.
+        PROVENANCE: that an aggregate hides which signature was bad is a known property of aggregation; locating bad signatures in a batch is a studied problem. The paper's system model leaves it out. What is ours comes on the next two slides: the measured policy costs and the crossover.
         TIME: 45 seconds.
         NEXT: three ways to run an aggregator.
     """))
@@ -103,7 +106,7 @@ def build(d):
     box(s, 4.2, 4.35, 8.53, 1.65, fill=T.PANEL, line=None, radius=0.1)
     tb(s, 4.45, 4.45, 8.1, 1.5, [
         {"text": "The paper: the aggregator “does not use their own private information … only merges multiple signatures.”", "size": 15, "after": 6},
-        {"text": "True, and it is why aggregation is secure. But a sum hides which term was wrong, so one faulty sensor denies service to every honest one in its batch.", "size": 16}],
+        {"text": "True, and it is why aggregation is secure. But a sum hides which term was wrong, so one faulty sensor denies service to every honest one in its batch. A known property of aggregation; the paper's model omits it.", "size": 15.5}],
        lsp=0.97)
     takeaway(s, "Aggregation is secure but fragile: one bad input loses the batch, and the cause cannot be seen.", color=T.BAD)
 
@@ -133,7 +136,7 @@ def build(d):
     # ------------------------------------------------------------------ 19. which policy
     rows_d = {r_["fault_rate"]: r_ for r_ in ag["rows"]}
     s = d.slide("Part IV · Which policy, when", "Pre-verify by default; an attacker chooses the fault rate",
-                tags=["EXPERIMENT"], notes=N(f"""
+                tags=["EXPERIMENT", "OUR FINDING"], notes=N(f"""
         SAY: Cost per delivered signature, P-256, batches of {ag['n']}, {ag['trials']} trials per row. BLIND is cheapest while every batch is clean, but from 2 percent it delivered nothing. RETAIN beats PREVERIFY only on clean batches. From about one bad signature per batch of {ag['n']}, the 0.5 percent row, PREVERIFY is cheaper, and it stays nearly flat up to 10 percent.
         WHY THE CROSSOVER IS SO LOW: verifying a signature on its own is only {ag['gap']:.1f} times dearer than its share of an aggregate verification, not ten times.
         RECOMMENDATION: in a factory where sensors almost never fail, RETAIN. Where an attacker may submit bad signatures, the attacker picks the fault rate, so PREVERIFY is the safe default.

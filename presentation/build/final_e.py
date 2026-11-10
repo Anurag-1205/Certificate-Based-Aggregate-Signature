@@ -1,7 +1,7 @@
 """Part VI: evidence, results, what holds, scope, conclusion (slides 26-30), then Thank You."""
 import theme as T
 from final_common import C, N, card, num_badge, tag_pill
-from lib import box, cue, grid, pill, tb, takeaway, terminal
+from lib import box, grid, pill, tb, takeaway, terminal
 
 
 def build(d):
@@ -43,8 +43,8 @@ def build(d):
          ("The repaired scheme costs about twice its printed row", "OUR AUDIT", f"×{rc['factor']:.2f} at n = 100"),
          ("Anyone with a public key forges Verma; Table II is wrong", "OUR FINDING", f"{ko['verma_forged']} / {ko['trials']}"),
          ("Hashing $T$ and hashing $R$ each block their own attack", "OUR FINDING", "2 × 2, 8 trials per cell"),
-         ("Optimising both schemes widens the gap", "EXPERIMENT", f"×{op['p256']['ratio_naive']:.1f} → ×{op['p256']['ratio_optimised']:.1f}"),
-         ("One bad signature sinks a batch; pre-verify by default", "OUR FINDING", f"located in {ag['locate_verifications']} checks of {ag['n_locate']}"),
+         ("Best-effort optimisation of both schemes does not close the gap", "EXPERIMENT", f"×{op['p256']['ratio_naive']:.1f} → ×{op['p256']['ratio_optimised']:.1f}"),
+         ("Pre-verifying a batch is cheap, so one bad signature need not sink it", "OUR FINDING", f"{ag['gap']:.1f}× per signature"),
          ("A reused nonce leaks every key: 3 signatures, or 2 for the KGC", "OUR FINDING", f"{nr['outsider3']} / {nr['trials']}"),
          ("The replay and forward-security claims do not hold", "OUR FINDING", "both tested")]
     body = [[{"text": "RESULT"}, {"text": "KIND"}, {"text": "EVIDENCE"}]]
@@ -57,18 +57,21 @@ def build(d):
 
     # ------------------------------------------------------------------ 28. what the paper gets right
     s = d.slide("Part VI · Fairness", "What the paper gets right", tags=["PAPER", "EXPERIMENT"], notes=N(f"""
-        SAY: To be fair to the authors. Their central claim holds up: Verma's scheme is broken by a malicious KGC, and their repair resists that attack. It also resisted the key-only forgery: {ko['qiao_forged']} of {ko['trials']}, with the paper's attack also at {ko['qiao_forged']} of {ko['trials']}. Both of its hash bindings turn out to be necessary. And aggregation really uses no secrets, so the aggregate inherits the single-signature security.
+        SAY: To be fair to the authors. Their central claim holds up: Verma's scheme is broken by a malicious KGC, and their repair resists that attack. It also resisted the key-only forgery: {ko['qiao_forged']} of {ko['trials']}, with the paper's attack also at {ko['qiao_forged']} of {ko['trials']}. Both of its hash bindings turn out to be necessary. The fourth card is different: the aggregator uses no secrets, which a test checks, but that aggregate security follows from it is the paper's argument, which we did not audit; so it carries no tick.
         WHAT WE DID NOT CHECK: their security proof. Nothing we found contradicts it; our findings are about cost, deployment and the extra claims in section V-C.
         TIME: 30 seconds.
     """))
     good = [("The diagnosis is right", "Verma's scheme is forgeable by a malicious KGC, exactly as §IV-B says."),
             ("The repair holds", f"It resisted every forgery we tried: the paper's attack and the key-only attack, {ko['qiao_forged']} / {ko['trials']} each."),
             ("Both bindings are needed", "Removing either opens a forgery (the $R$ one by public-key replacement)."),
-            ("Aggregation is safe", "The aggregator uses no secrets, so aggregate security follows from single-signature security.")]
+            ("Aggregation, per the paper", "The aggregator uses no secrets (a test checks). That aggregate security follows is the paper's argument, not audited by us.")]
     for i, (h, b) in enumerate(good):
         x = 0.6 + (i % 2) * 6.23
         y = 1.75 + (i // 2) * 1.75
-        card(s, x, y, 5.9, 1.55, "✓  " + h, [b], line=T.GOOD, hsize=18, bsize=15.5, gap=4)
+        if i < 3:
+            card(s, x, y, 5.9, 1.55, "✓  " + h, [b], line=T.GOOD, hsize=18, bsize=15.5, gap=4)
+        else:
+            card(s, x, y, 5.9, 1.55, h, [b], tag="PAPER", line=T.RULE, hsize=16, bsize=14, gap=2)
     box(s, 0.6, 5.35, 12.13, 0.7, fill=T.PANEL, line=None, radius=0.1)
     tb(s, 0.85, 5.35, 11.6, 0.7, "Not audited by us: the paper's EUF-CMA proof (Theorem 1). Nothing we found contradicts it.", size=16, anchor="m")
     takeaway(s, "The repair is sound against every forgery we tried; our findings concern cost, deployment and §V-C.", color=T.GOOD)
@@ -95,13 +98,13 @@ def build(d):
 
     # ------------------------------------------------------------------ 30. conclusion
     s = d.slide("Part VI · Conclusion", "Three things to remember", tags=["OUR FINDING", "EXPERIMENT"], notes=N("""
-        SAY: One: Verma's scheme is broken more simply than the paper says; anyone holding a public key can forge, and the paper's own Table II gets this wrong. Two: the repair works, but it is not as cheap as printed: about twice the printed cost, and three times Verma's once both are optimised. Three: the repaired scheme still needs care in deployment: one bad signature sinks a batch, a repeated nonce gives away every key, and its replay and forward-security claims do not hold. Each of these has a concrete fix.
+        SAY: One: Verma's scheme is broken more simply than the paper says; anyone holding a public key can forge, and the paper's own Table II gets this wrong. Two: the repair works, but it is not as cheap as printed: about twice its printed cost, about 2.4 times Verma's, and optimising both schemes does not change that. Three: the repaired scheme still needs care in deployment: one bad signature sinks a batch, a repeated nonce gives away every key, and its replay and forward-security claims do not hold. Each of these has a concrete fix.
         TIME: 40 seconds. Then stop: thank you, questions.
     """))
     pts = [("Verma's scheme is broken more simply than the paper says",
             "Anyone holding a public key can forge; the paper's Table II says it is secure against $F_{1}$."),
            ("The repair works, but costs more than printed",
-            f"About ×2 its printed row, and ×{op['p256']['ratio_optimised']:.1f} Verma's once both are optimised."),
+            f"About ×2 its printed row, about ×{op['p256']['ratio_optimised']:.1f} Verma's, and optimising both schemes does not change that."),
            ("Deploying the repair still needs care",
             "Pre-verify against bad signatures, hedge the nonce, add freshness. Two §V-C claims do not hold.")]
     for i, (h, b) in enumerate(pts):
@@ -110,14 +113,13 @@ def build(d):
         num_badge(s, 0.85, y + 0.38, i + 1, d=0.52)
         tb(s, 1.65, y + 0.12, 10.9, 1.08, [{"text": h, "bold": True, "size": 20, "after": 4},
                                            {"text": b, "size": 16, "color": T.MUTED}], lsp=0.97)
-    cue(s, "3 things to remember, then stop.", x=9.3, y=1.13, w=3.43, h=0.5)
-    takeaway(s, "We reproduced the paper, then went past it: a stronger attack, the real cost, and deployment fixes.")
+    takeaway(s, "We reproduced the paper, then went past it: a stronger attack, the real cost, deployment fixes.")
 
     # ------------------------------------------------------------------ thank you
     s = d.dark(notes=N("""
         STOP HERE. The main talk ends on this slide.
         SAY: Thank you. We are happy to take questions.
-        WHICH BACKUP FOR WHICH QUESTION: both schemes in full: B1, B2. The key-only algebra and the fixed-point search: B3. The two ablations: B4. The 2 by 2 as tests: B5. Nonce-reuse algebra: B6. The hedged nonce: B7. Forward security: B8. Optimisation in detail: B9. Fault localisation and sub-batching: B10. The interim's operation counts: B11. The P-256 timing model: B12. Demo fallbacks: B13. Tests and commands: B14.
+        WHICH BACKUP FOR WHICH QUESTION: both schemes in full: B1, B2. The key-only algebra and the fixed-point search: B3. The two ablations: B4. The 2 by 2 as tests: B5. Nonce-reuse algebra: B6. The hedged nonce: B7. Forward security: B8. Optimisation in detail: B9. Fault localisation and sub-batching: B10. The interim's operation counts: B11. The P-256 timing model: B12. Demo fallbacks: B13. Tests and commands: B14. The paper's own attack, step by step: B15. References: B16.
     """))
     tb(s, 0.8, 2.55, 11.7, 1.6, "Thank you", size=84, color="#FFFFFF", bold=True, font=T.F_MATH, align="c", check=False)
     tb(s, 0.8, 4.35, 11.7, 0.8, "Questions?", size=38, color="#9FB3C8", align="c", check=False)

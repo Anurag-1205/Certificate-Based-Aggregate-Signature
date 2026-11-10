@@ -1,6 +1,6 @@
 """Assemble the final deck.
 
-    /path/to/deckenv/bin/python presentation/build/build_final.py [--no-cues]
+    /path/to/deckenv/bin/python presentation/build/build_final.py [--cues]
 
 Writes presentation/CBAS_Final_Presentation.pptx and prints layout warnings.
 Reads presentation/data/claims_final.json (run audit/verify_claims_final.py first).
@@ -20,8 +20,8 @@ TOTAL_MAIN = 30
 FOOTER = "Certificate-based aggregate signatures for IIoT · final research presentation"
 
 # Seconds per main slide. Total is printed by the build and must stay within the 15-20 minute slot.
-ROUTE = {1: 20, 2: 20, 3: 40, 4: 30, 5: 30, 6: 25, 7: 30, 8: 60, 9: 30, 10: 75, 11: 30, 12: 60, 13: 20,
-         14: 30, 15: 45, 16: 30, 17: 30, 18: 30, 19: 45, 20: 30, 21: 45, 22: 75, 23: 30, 24: 30, 25: 35,
+ROUTE = {1: 20, 2: 20, 3: 45, 4: 40, 5: 40, 6: 30, 7: 25, 8: 30, 9: 60, 10: 30, 11: 75, 12: 30, 13: 60,
+         14: 35, 15: 45, 16: 30, 17: 30, 18: 30, 19: 45, 20: 30, 21: 45, 22: 75, 23: 30, 24: 30, 25: 35,
          26: 20, 27: 30, 28: 20, 29: 20, 30: 30}
 
 
@@ -45,8 +45,8 @@ def apply_route(prs):
 
 
 def main():
-    if "--no-cues" in sys.argv:
-        lib.CUES["on"] = False
+    # Presenter cues are off unless asked for: the presented deck must not show them.
+    lib.CUES["on"] = "--cues" in sys.argv
     d = lib.Deck(TOTAL_MAIN, footer=FOOTER)
     for name in PARTS:
         if (HERE / f"{name}.py").exists():
