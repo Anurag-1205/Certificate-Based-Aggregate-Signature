@@ -151,7 +151,7 @@ def main() -> int:
     print("  A second, independent flaw: Verma never binds the commitment R into")
     print("  any hash at all, so an outsider with only the public key -- no")
     print("  signature ever observed -- can solve for R directly. See")
-    print("  KEYONLY_FORGERY.md.")
+    print("  analysis/KEYONLY_FORGERY.md.")
     print(RULE)
 
     return 0 if (broke_verma and held_fixed and keyonly_ok) else 1

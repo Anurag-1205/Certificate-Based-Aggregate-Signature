@@ -1,0 +1,56 @@
+\section{Derivations}\label{app:derivations}
+
+\subsection{The paper's malicious-KGC attack, step by step}\label{app:attack}
+Following the paper's Section~IV-B~\cite{qiao2023}. The KGC holds $(R_{1i},c_i)$ and one signature
+$(R_i,z_i)$ on $m_i$, with $v_i=H_1(m_i\concat pk_i\concat id_i\concat\Delta)$.
+\begin{enumerate}[label=(\alph*),itemsep=0pt]
+\item Strip the certificate: $r_{2i}P=R_i-R_{1i}$ and $r_{2i}+sk_iv_i=z_i-c_i$.
+\item Normalise by $v_i$:
+      $\alpha=(z_i-c_i)/v_i=r_{2i}/v_i+sk_i$ and $A=(R_i-R_{1i})/v_i=(r_{2i}/v_i)P$.
+\item Rescale to the target message: $v'=H_1(m'\concat pk_i\concat id_i\concat\Delta)$,
+      $R'=R_{1i}+v'A$, $z'=v'\alpha+c_i=v'r_{2i}/v_i+c_i+sk_iv'$.
+\item Output $\delta'=(R',z')$.
+\end{enumerate}
+It verifies because
+\[
+z'P=\frac{v'r_{2i}}{v_i}P+c_iP+sk_iv'P
+=\frac{v'r_{2i}}{v_i}P+R_{1i}+h_0^i\PTA+v'pk_i
+=R'+h_0^i\PTA+v'pk_i .
+\]
+With $\lambda=v'/v_i$ this is \cref{eq:rescale}. Steps (a), (b) and (c) are lines 73--74, 77--78 and 81--83
+of \code{forge\_verma} in \code{attack.py}; the function takes no secret key as an argument, which a test
+checks.
+
+\subsection{Why the rescaling fails against the repair}
+In the repaired scheme the new commitment would be $T'=\lambda T_i$, and the new coefficient $v'$ is a
+hash of $T'$ itself. A forgery therefore needs a $\lambda$ with
+\[
+H_1(m'\concat pk_i\concat R_i\concat id_i\concat\lambda T_i\concat\Delta)=\lambda\,v_i ,
+\]
+a fixed point of a random oracle; the same holds for $u'$ under $H_2$. Searching for it is exhaustive search
+over the group, not algebra.
+
+\subsection{The key-only fixed-point search}
+Against the repaired scheme the key-only attempt fixes $z$ and $T$, guesses $R_k$, computes
+$h_0,u,v$ from the guess, and solves
+\[
+R_{k+1}=u^{-1}\big(zP-T-u\,h_0\PTA-v\,pk\big).
+\]
+A forgery needs $R_{k+1}=R_k$. In every trial all 16 rounds gave distinct candidates.
+
+\subsection{Nonce-reuse key recovery}\label{app:nonce}
+Three signatures on distinct messages under one nonce $t$ satisfy $z_j=t+c\,u_j+sk\,v_j$ for $j=1,2,3$.
+Subtracting removes $t$:
+\[
+d_1=z_1-z_2=c\,a_1+sk\,b_1,\qquad d_2=z_1-z_3=c\,a_2+sk\,b_2,
+\]
+with $a_1=u_1-u_2$, $a_2=u_1-u_3$, $b_1=v_1-v_2$, $b_2=v_1-v_3$. By Cramer's rule, with
+$D=a_1b_2-a_2b_1$ (nonzero except with negligible probability),
+\[
+c=\frac{d_1b_2-d_2b_1}{D},\qquad sk=\frac{a_1d_2-a_2d_1}{D},\qquad t=z_1-c\,u_1-sk\,v_1 .
+\]
+The implementation checks $sk\,P=pk$ and $cP=R+h_0\PTA$ before returning, so it never returns a wrong
+answer. With two signatures an outsider has the single equation $d_1=c\,a_1+sk\,b_1$: every guess of
+$sk$ fits some $c$, and only the correct one satisfies $sk\,P=pk$, which makes finding it as hard as a
+discrete logarithm. The KGC knows $c$, so $sk=(d_1-c\,a_1)/b_1$. In Verma's scheme
+$z_1-z_2=sk\,(v_1-v_2)$, so two signatures suffice for anyone.

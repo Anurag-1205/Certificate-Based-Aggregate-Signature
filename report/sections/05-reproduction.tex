@@ -1,0 +1,57 @@
+\section{Reproducing the Paper's Attack and Testing the Repair}\label{sec:repro}
+
+\subsection{The malicious-KGC forgery on Verma's scheme}\label{sec:repro-attack}
+\prov{Paper}, reproduced. The attacker is the paper's $\Ftwo$, a malicious KGC. It issued sensor $i$'s
+certificate $(R_{1i},c_i)$ and has observed one valid signature $(R_i,z_i)$ on a message $m_i$. It does
+not know $sk_i$ or the nonce $r_{2i}$, and it wants a signature on a new message $m'$.
+
+From \cref{eq:verma-sign}, the KGC can strip its own contributions: $R_i-R_{1i}=r_{2i}P$, and
+$z_i-c_i=r_{2i}+sk_iv_i$, a single scalar that mixes the two unknowns. The weakness is that the hash
+$v_i=H_1(m_i\concat pk_i\concat id_i\concat\Delta)$ does not depend on the nonce, so for any new message
+the coefficient $v'=H_1(m'\concat pk_i\concat id_i\concat\Delta)$ can be computed in advance. Rescaling by
+$\lambda=v'/v_i$ gives
+\begin{equation}\label{eq:rescale}
+R'=R_{1i}+\lambda\,(R_i-R_{1i}),\qquad z'=c_i+\lambda\,(z_i-c_i),
+\end{equation}
+which is a valid signature on $m'$ with the unknown nonce $\lambda r_{2i}$: substituting into
+\cref{eq:verma-verify} gives $z'P=R'+h_0^i\PTA+v'pk_i$. The attacker never learns $r_{2i}$ or $sk_i$; it
+rescales a value it cannot open. \Cref{app:attack} gives the paper's step-by-step derivation, which our
+function \code{forge\_verma} follows line by line.
+
+\subsection{Results}
+We ran the attack for 4 target messages on each backend, against Verma's scheme and, with the same
+strategy, against the repaired scheme (\cref{tab:repro}). Against Verma's scheme every forgery verifies,
+also inside an aggregate next to an honest signature. Against the repair the rescaling has no fixed
+target: the new commitment $T'$ must be chosen before $v'$ can be computed, but the attack defines $T'$
+in terms of $v'$. Iterating this circular definition for 16 rounds produced 16 distinct candidates in
+every trial and no forgery.
+
+\begin{table}[ht]
+\centering\small
+\caption{The paper's attack and our ablation (4 messages $\times$ 2 backends).}\label{tab:repro}
+\begin{tabular}{llcl}
+\toprule
+& Scheme & Forgeries that verify & Status \\
+\midrule
+A & Verma \emph{et al.} & 8 / 8 & broken, as the paper says \prov{Reproduced} \\
+B & Qiao \emph{et al.}, repaired & 0 / 8 & the attack does not apply \prov{Reproduced} \\
+C & Qiao without the $T_i$ binding & 8 / 8 & broken again \prov{Ours} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Which change stops the attack}
+The repair changes several things at once (\cref{sec:schemes}), so its resistance alone does not say
+which change matters. We built a control: the repaired scheme with exactly one change removed, the
+nonce commitment $T_i$ dropped from $H_1$ and $H_2$. Everything else is the real scheme's code: the same
+\textsf{Setup}, \textsf{KeyGen}, \textsf{CertGen}, aggregation and verification equation, with $R_i$ still
+hashed and $u_i,v_i$ still from separate hash functions. The variant is a working scheme: honest
+signatures verify and signatures do not transfer to other messages (8/8). The paper's attack succeeds
+against it in 8 of 8 trials (row C).
+
+Binding $T_i$ into the hash is therefore \emph{necessary} to stop this attack, all else held fixed. The
+paper states the same design rule in its Section~V-A: the commitment $T_i$ ``should be used to generate
+the core element of signature'', otherwise a malicious KGC can forge from a known
+signature~\cite{qiao2023}. The ablation tests that rule; it does not show that the other changes are
+unnecessary, nor that the repaired scheme is secure, which is the paper's proof. \Cref{sec:keyonly}
+returns to the other binding.

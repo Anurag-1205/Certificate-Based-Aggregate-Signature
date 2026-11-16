@@ -228,7 +228,7 @@ def _encodings_per_signer(be, mod, signer_of):
 
 
 def test_hash_inputs_encode_8_points_per_signer_against_vermas_2(be):
-    """Why the P-256 timing exceeds the Te/Ta/Th model (RESULTS.md).
+    """Why the P-256 timing exceeds the Te/Ta/Th model (analysis/RESULTS.md).
 
     Each hash call serialises its point inputs: H0 encodes pk and R, H1 and H2
     each encode pk, R and T, so 8 per signer; Verma's H0 and H1 encode pk once

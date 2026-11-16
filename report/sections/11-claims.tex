@@ -1,0 +1,35 @@
+\section{The Paper's Additional Security Claims}\label{sec:claims}
+
+Beyond the proven unforgeability, the paper's Section~V-C lists four further security properties. Two are
+testable and we tested them.
+
+\subsection{``Resist replay attacks''}
+The paper's argument, in full: ``The signature algorithm of our CBAS scheme is probabilistic, so the
+different random values will be used every time the algorithm is run, and the different signature will
+be obtained even the same message takes as the input.''~\cite{qiao2023}
+
+Signing is indeed randomised. It does not follow that replays are resisted: a replay attack does not sign
+anything, it re-sends an old valid message and signature, and that pair still verifies. On both backends
+an old signature verified again, and it also verified inside a new aggregate, even when the same signature
+appeared twice in one batch (2/2 each). The paper sets $\Delta$ once in \textsf{Setup} and never says it
+changes; if a deployment rotated $\Delta$ per epoch, old signatures would stop verifying in the next epoch,
+but replays within an epoch would still succeed. Replay protection needs freshness that the verifier
+checks, such as a sequence number or timestamp in the message, or rejection of repeated $T_i$. Replay is a
+protocol-level property; randomised signing does not provide it. \textbf{The claim does not hold as
+argued.}
+
+\subsection{``Perfect forward security''}
+The paper's argument, in full: ``In our scheme, no one can obtain the random value that used to created
+the signature, hence, our proposal provides perfect forward security.''~\cite{qiao2023}
+
+The paper gives no definition and no proof. For signatures, forward security has a standard
+meaning~\cite{bellare1999}: secret keys evolve through time periods, so a key stolen later cannot sign for
+an earlier period. The repaired scheme has no time periods and no key update; $sk_i$ and $\mathit{Cert}_i$
+are fixed for life. We tested the consequence: keys recovered while the system was in epoch~1 (through the
+nonce reuse of \cref{sec:nonce}) signed a back-dated epoch-0 reading that verified, also inside an
+aggregate with a genuine epoch-0 signature (2/2). The argument's premise also fails: ``no one can obtain the
+random value'' assumes a perfect generator, and with a repeated nonce $t$ is recovered exactly. Nonce
+secrecy is needed for unforgeability; it does not give forward security. The paper itself cites a scheme
+titled as forward-secure and certificate-based~\cite{li2015}, so the notion was available to the authors.
+\textbf{The claim is not supported}; making it true would need a key-evolving construction, not a change
+of wording.

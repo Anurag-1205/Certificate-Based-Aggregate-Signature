@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "cbas-iiot"
 version = "0.1.0"
-description = "Certificate-Based Aggregate Signature scheme for IIoT (Qiao et al., IEEE Systems Journal 2023) - Python wrapper over native libsodium"
+description = "Certificate-Based Aggregate Signature scheme for IIoT (Qiao et al., IEEE Systems Journal 2023) - Python over native libsodium and OpenSSL"
 requires-python = ">=3.10"
 dependencies = []
 

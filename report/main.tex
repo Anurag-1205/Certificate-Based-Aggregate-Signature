@@ -1,0 +1,134 @@
+\documentclass[11pt,a4paper]{article}
+
+% ---------------------------------------------------------------- packages
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{mathptmx}
+\usepackage[scaled=0.92]{helvet}
+\usepackage{courier}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage[expansion=false]{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,multirow,threeparttable}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{xurl}
+\usepackage[hidelinks]{hyperref}
+\usepackage[capitalise,nameinlink]{cleveref}
+
+\captionsetup{font=small,labelfont=bf}
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\parskip}{1pt}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\bibsep}{2pt plus 1pt}
+\renewcommand{\bibfont}{\small}
+
+% ---------------------------------------------------------------- notation
+\newcommand{\Te}{T_{e}}
+\newcommand{\Ta}{T_{a}}
+\newcommand{\Th}{T_{h}}
+\newcommand{\PTA}{P_{\mathrm{TA}}}
+\newcommand{\sTA}{s_{\mathrm{TA}}}
+\newcommand{\Zp}{\mathbb{Z}_p^{*}}
+\newcommand{\concat}{\,\|\,}
+\newcommand{\Fone}{\mathcal{F}_1}
+\newcommand{\Ftwo}{\mathcal{F}_2}
+\newcommand{\code}[1]{\texttt{#1}}
+% provenance of a claim: Paper / Reproduced / Ours / Implementation / Experiment
+\newcommand{\prov}[1]{\textsc{\small[#1]}}
+
+\definecolor{ink}{HTML}{14202E}
+\definecolor{kgc}{HTML}{6B3FA0}
+\definecolor{sen}{HTML}{1D5EA8}
+\definecolor{agg}{HTML}{B26A00}
+\definecolor{ver}{HTML}{455A6E}
+
+\hypersetup{pdftitle={Reproducing, Auditing and Extending a Certificate-Based Aggregate Signature Scheme for IIoT}}
+
+\begin{document}
+
+% ---------------------------------------------------------------- title page
+\begin{titlepage}
+\centering
+\vspace*{2.2cm}
+{\LARGE\bfseries Reproducing, Auditing and Extending a\\[4pt]
+Certificate-Based Aggregate Signature Scheme\\[4pt]
+for the Industrial Internet of Things\par}
+\vspace{1.2cm}
+{\large Project Report\par}
+\vspace{0.4cm}
+{\normalsize A study of: Z.~Qiao \emph{et al.}, ``An Efficient Certificate-Based Aggregate Signature
+Scheme With Provable Security for Industrial Internet of Things,''\\
+\emph{IEEE Systems Journal}, vol.~17, no.~1, pp.~72--82, 2023.\par}
+\vspace{2.2cm}
+\begin{tabular}{l@{\hspace{2.5em}}l}
+Anurag Kaushal & Roll No.\ 2025202013\\
+Pranav Vyas & Roll No.\ 2025202015\\
+Taufique & Roll No.\ 2025202007\\
+\end{tabular}\par
+\vspace{1.2cm}
+{\small Code, tests and recorded results:\\[2pt]
+\url{https://github.com/Anurag-1205/Certificate-Based-Aggregate-Signature}\par}
+\vfill
+{\large Research in Information Security\par}
+{International Institute of Information Technology, Hyderabad\par}
+\vspace{0.6cm}
+{Date of submission: November 17, 2026\par}
+\vspace*{1cm}
+\end{titlepage}
+
+% ---------------------------------------------------------------- abstract
+\begin{abstract}
+\noindent Qiao \emph{et al.} (IEEE Systems Journal, 2023) show that the certificate-based aggregate
+signature (CBAS) scheme of Verma \emph{et al.} can be forged by a malicious key generation centre (KGC),
+and propose a repaired scheme that they prove secure and present as costing the same as the scheme it
+replaces. We implemented both schemes over two independent elliptic-curve libraries (Ristretto255 via
+libsodium and NIST P-256 via OpenSSL), reproduced the paper's forgery, and then tested the repair and
+its claims. Our main results are: (i)~the paper's attack works against Verma's scheme in 8 of 8 trials
+and fails against the repair, and a controlled ablation shows that binding the nonce commitment $T_i$
+into the hash is what stops it; (ii)~Verma's scheme, as the paper describes it, admits a much simpler
+key-only universal forgery that needs no observed signature, contradicting the paper's own security
+table, and a $2\times2$ ablation shows that each of the repair's two hash bindings closes a different
+attack; (iii)~the cost the paper prints for its own scheme is about half the cost of its own
+verification equation ($\times1.99$ at $n=100$), and best-effort optimisation of both schemes leaves the
+measured gap at about $\times2.4$ rather than closing it; (iv)~in deployment, one invalid signature
+silently invalidates an aggregate, a repeated signing nonce reveals every signer secret (three
+signatures for an outsider, two for the KGC), and the paper's ``replay resistance'' and ``perfect
+forward security'' claims do not hold. All results are produced by running code: 424 tests on both
+libraries, two live demonstrations, and an audit script that recomputes every reported number.
+
+\medskip\noindent\textbf{Keywords:} certificate-based signatures, aggregate signatures, Industrial
+Internet of Things, malicious KGC, cryptanalysis, reproducibility, nonce reuse.
+\end{abstract}
+
+\input{sections/01-introduction}
+\input{sections/02-background}
+\input{sections/03-schemes}
+\input{sections/04-methodology}
+\input{sections/05-reproduction}
+\input{sections/06-cost-audit}
+\input{sections/07-keyonly}
+\input{sections/08-optimisation}
+\input{sections/09-aggregator}
+\input{sections/10-nonce}
+\input{sections/11-claims}
+\input{sections/12-discussion}
+\input{sections/13-conclusion}
+
+\bibliographystyle{unsrtnat}
+\bibliography{refs}
+
+\appendix
+\input{sections/A-derivations}
+\input{sections/B-data}
+\input{sections/C-errata}
+\input{sections/D-reproducing}
+
+\end{document}

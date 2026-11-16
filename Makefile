@@ -5,7 +5,7 @@ PY := .venv/bin/python
 help:
 	@echo "make selftest  - backend algebraic self-test (no pytest needed)"
 	@echo "make test      - full pytest suite"
-	@echo "make verify    - selftest + tests + demo + attack demo"
+	@echo "make verify    - selftest + tests + all three demos (walkthrough, attack, nonce)"
 	@echo "make attack    - side-by-side forgery demonstration"
 	@echo "make nonce     - key recovery from a reused nonce, and the defence"
 	@echo "make bench     - timing sweep and analysis, both backends"

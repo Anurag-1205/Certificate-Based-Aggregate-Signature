@@ -58,7 +58,7 @@ algebraic manipulation.
 ``ablation_r.py`` isolates which of the scheme's two corrections is
 responsible: removing only the R-binding (independent of the T-binding that
 ``ablation.py`` removes) reopens exactly this attack, while removing only the
-T-binding does not. See ``KEYONLY_FORGERY.md`` for the full 2x2 result.
+T-binding does not. See ``analysis/KEYONLY_FORGERY.md`` for the full 2x2 result.
 """
 
 from __future__ import annotations

@@ -1,0 +1,62 @@
+\section{The Aggregator in Practice}\label{sec:agg}
+
+The paper treats the aggregator as harmless: it ``does not use their own private information'' and only
+merges signatures~\cite{qiao2023}. That is true, and it is why aggregation does not weaken security. But
+merging is a sum, $z=\sum z_i$. If one signature is invalid (a faulty sensor, a corrupted link or an
+attacker) the aggregate fails verification, and the sum no longer says which component was wrong. One
+bad sensor thereby denies service to every honest sensor in its batch. This is a known property of
+aggregation, and locating bad signatures in a batch is a studied problem~\cite{pastuszak2000}; the
+paper's system model simply leaves it out. We confirmed it on our implementation (one corrupted signature
+in 32 makes the whole aggregate fail), and our contribution is a measurement of what handling it costs.
+
+\subsection{Three aggregator policies}
+\prov{Implementation}.
+\begin{itemize}
+\item \textbf{BLIND} (the paper's model): merge everything. A single bad signature loses the batch and the
+      culprit cannot be found.
+\item \textbf{PREVERIFY}: verify each signature before merging and drop the bad ones.
+\item \textbf{RETAIN}: merge optimistically but keep the individual signatures. If the aggregate fails,
+      split the batch in halves and verify each half as an aggregate, recursively. A clean half costs one
+      aggregate verification whatever its size, so $f$ faults among $n$ cost on the order of $f\log_2 n$
+      verifications. One bad signature among 32 was located with 11 verifications.
+\end{itemize}
+None of the policies uses secret material, so the paper's security argument is unaffected; a test
+inspects the code to confirm this.
+
+\subsection{Which policy, when}
+\prov{Experiment}, \prov{Ours}. We simulated batches of $n=200$ signatures on P-256, each signature bad
+independently with a given probability, 5 trials per rate, using measured verification costs.
+\Cref{tab:agg} reports the total aggregator and cloud work per signature actually delivered.
+
+\begin{table}[ht]
+\centering\small
+\caption{Cost per delivered signature (ms), P-256, batches of 200, 5 trials per row.}\label{tab:agg}
+\begin{tabular}{rrrrrl}
+\toprule
+Fault rate & Bad per batch & BLIND & PREVERIFY & RETAIN & Cheaper of the two that recover \\
+\midrule
+0.0\% & 0.0 & 0.0566 & 0.1645 & 0.1163 & RETAIN \\
+0.1\% & 0.0 & 0.0566 & 0.1598 & 0.1163 & RETAIN \\
+0.5\% & 0.8 & 0.1414 & 0.1612 & 0.2384 & PREVERIFY \\
+2.0\% & 3.4 & batch lost & 0.1626 & 0.4058 & PREVERIFY \\
+5.0\% & 7.8 & batch lost & 0.1705 & 0.4781 & PREVERIFY \\
+10.0\% & 18.4 & batch lost & 0.1784 & 0.5795 & PREVERIFY \\
+\bottomrule
+\end{tabular}
+
+\smallskip
+\footnotesize At the 0.1\% rate no trial drew a bad signature, so the first two rows are both clean batches.
+\end{table}
+
+BLIND is cheapest while every batch is clean, but from a 2\% fault rate it delivered nothing in any trial.
+RETAIN beats PREVERIFY only on clean batches; from about one bad signature per batch of 200, PREVERIFY is
+cheaper, and its cost stays nearly flat up to 10\%. The crossover is low because verifying a signature on
+its own costs only $1.7$ times its share of an aggregate verification ($0.098$~ms against $0.057$~ms per
+signature), not the order of magnitude one might expect. That makes pre-verification affordable.
+
+\paragraph{Recommendation.} Where sensors almost never fail, RETAIN is cheapest. Where an attacker can
+submit bad signatures, the attacker chooses the fault rate, so PREVERIFY is the safe default: it costs
+about $2.9$ times a blind aggregation on a clean batch and never loses one. An aggregator too constrained
+to verify can still limit the damage by sub-batching; \cref{tab:subbatch} in \cref{app:data} gives the
+cost-optimal batch size for each fault rate. This is an availability result, not a weakness in the
+cryptography.

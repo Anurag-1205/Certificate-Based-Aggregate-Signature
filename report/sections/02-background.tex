@@ -1,0 +1,61 @@
+\section{Background and Related Work}\label{sec:background}
+
+\subsection{Key infrastructures and certificate-based signatures}
+Three ways of binding a public key to an identity frame this work. In a \emph{public-key infrastructure}
+a certification authority signs each user's key; verifiers must obtain, store and check certificates and
+learn about revocations. In \emph{identity-based} cryptography~\cite{shamir1984} the public key is the
+identity itself and a trusted authority derives every private key, so the authority can sign on anyone's
+behalf. \emph{Certificateless} cryptography~\cite{alriyami2003} splits the private key between a
+user-chosen secret and a partial key from the authority. \emph{Certificate-based}
+cryptography~\cite{gentry2003} keeps a user-generated key pair but makes the authority's certificate a
+required secret input to signing, so certificates need no separate distribution channel and the
+authority cannot sign alone. The schemes studied here are certificate-based.
+
+\subsection{Aggregate signatures}
+An aggregate signature scheme~\cite{boneh2003} lets $n$ signatures by $n$ signers on $n$ messages be
+combined into one aggregate that verifies only if every component is valid. The motivation in IIoT is
+communication and decision cost: the cloud receives one aggregate and makes one accept-or-reject
+decision. The aggregate offers no way to tell which component was invalid when verification fails, which
+is the starting point of \cref{sec:agg}; identifying bad signatures inside a batch is a studied problem in
+batch verification~\cite{pastuszak2000}.
+
+\subsection{Security model}
+The paper uses the standard notion of existential unforgeability under adaptive chosen-message attack
+(EUF-CMA)~\cite{gmr1988}, with two adversaries specific to certificate-based schemes~\cite{qiao2023}:
+\begin{itemize}
+\item $\Fone$, a \emph{malicious user}: may replace the public key of any user and obtain keys,
+      certificates and signatures, but never holds the master key or the challenge identity's certificate.
+\item $\Ftwo$, a \emph{malicious KGC}: holds the master key and hence every certificate, but never the
+      challenge identity's secret key, and cannot replace public keys.
+\end{itemize}
+A scheme is secure if neither adversary can produce a valid signature on a message it did not have
+signed. The paper proves its repair secure against both by the forking lemma~\cite{pointcheval2000}. We do
+not audit that proof.
+
+To compare attacks we use the taxonomy of Goldwasser, Micali and Rivest~\cite{gmr1988}. A
+\emph{key-only attack} sees only public keys; a \emph{chosen-message attack} may also obtain signatures.
+A \emph{universal forgery} produces a valid signature on any message the attacker chooses. Key-only
+universal forgery is the strongest break: the least access and the most damaging result.
+
+\subsection{Schnorr-type signatures and the commitment in the hash}
+Both schemes are Schnorr-like~\cite{schnorr1991}: the signer commits to a fresh nonce $t$ with $T=tP$,
+derives a challenge by hashing, and responds with a scalar linear in its secrets. The challenge must hash
+the commitment together with the message, $c=H(T,m)$. If it hashes only the message, $c=H(m)$, then $T$
+can be chosen \emph{after} $c$ is known, and any response verifies for a suitably solved $T$. This is the
+mechanism behind both the paper's attack and our key-only forgery. The nonce must also never repeat: two
+Schnorr signatures under one nonce reveal the secret key, which is why modern variants derive the nonce
+deterministically from the key and message~\cite{rfc6979,rfc8032}.
+
+\subsection{Forward security}
+A forward-secure signature scheme~\cite{bellare1999} divides time into periods and updates the secret key
+at each period through a one-way function, erasing the old key, so that a key stolen in period $j$
+cannot sign for any earlier period. The paper itself cites a scheme titled as a forward-secure certificate-based signature
+scheme~\cite{li2015}. ``Perfect forward secrecy'' is the corresponding property of key exchange, where
+session keys remain safe after a long-term key leaks; it does not describe a signature scheme.
+
+\subsection{Cost models}
+Papers in this line compare schemes by counting group operations: $\Te$ for a scalar multiplication,
+$\Ta$ for a point addition and $\Th$ for a hash to a scalar, priced with measured unit costs. The paper's
+Table~IV gives $\Te=0.112$, $\Ta=0.005$ and $\Th=0.004$~ms (and $1.365$~ms for a pairing, which neither
+scheme uses)~\cite{qiao2023}. We use these counts and costs to check the paper's tables
+(\cref{sec:cost}), and measure real time separately.

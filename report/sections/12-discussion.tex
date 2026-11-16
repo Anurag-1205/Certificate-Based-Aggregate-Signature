@@ -1,0 +1,54 @@
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Summary of findings}
+\Cref{tab:findings} lists every result with its provenance and evidence. One reproduces the paper; the
+others are ours, either audits of the paper's claims, measurements, or new analysis. Where a known
+technique is applied to this scheme (nonce reuse, hedged nonces, bad-signature identification), only the
+application is claimed.
+
+\begin{table}[ht]
+\centering\small
+\caption{All results, with provenance and evidence.}\label{tab:findings}
+\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.7cm}>{\raggedright\arraybackslash}p{4.1cm}}
+\toprule
+Result & Kind & Evidence \\
+\midrule
+The paper's malicious-KGC attack forges Verma signatures & Reproduced & 8/8 \\
+The repair stops it, and the $T_i$ binding is the change that does & Reproduced + ablation & 0/8; ablation 8/8 \\
+The repaired scheme costs about twice its printed row & Audit & $\times1.99$ at $n=100$; timing 2.12--2.37 \\
+Anyone with a public key can forge Verma's scheme; Table II is wrong & Ours & 8/8, 8/8 in aggregate \\
+Hashing $T$ and hashing $R$ each block their own attack & Ours & $2\times2$, 8 trials per cell \\
+Best-effort optimisation of both schemes does not close the gap & Experiment & $\times2.37\to\times2.40$ \\
+Pre-verifying a batch is cheap, so one bad signature need not sink it & Ours (applied) & $1.7\times$ per signature \\
+A repeated nonce reveals every secret: 3 signatures, or 2 for the KGC & Ours (applied) & 8/8 \\
+The replay and forward-security claims do not hold & Ours & both tested \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{What the paper gets right}
+Our findings should not be read as a rejection of the paper. Its diagnosis of Verma's scheme is correct
+and reproduces exactly. Its repair resisted every forgery we tried, the paper's own attack and our key-only
+attack alike, and both of its hash bindings turn out to be necessary. The aggregator uses no secret
+material, which a test confirms; that aggregate security then follows is the paper's argument, which we
+did not audit. Nothing we found contradicts the paper's unforgeability theorem. Our findings concern the
+efficiency comparison, deployment, and the additional properties claimed in Section~V-C.
+
+\subsection{Threats to validity}
+\begin{itemize}
+\item \textbf{The proof.} We did not audit the paper's EUF-CMA proof (Theorem~1 and its lemmas). Failed
+      attacks are evidence about those attacks only, not about security.
+\item \textbf{Verma's scheme.} We implemented it from the paper's description (Section~IV-A), not from
+      Verma's original article. Our key-only forgery and the contradiction with Table~II therefore concern
+      the scheme as the paper specifies and rates it.
+\item \textbf{Timing.} Absolute times include Python and \code{ctypes} overhead, and our curves are not
+      the paper's. We therefore report ratios between schemes on the same machine, curve and library,
+      supported by exact operation counts that are identical on both libraries. Timings come from a laptop
+      and one cloud machine; we did not measure on sensor hardware.
+\item \textbf{Simulated faults.} The stuck generator of \cref{sec:nonce} and the faulty signatures of
+      \cref{sec:agg} are simulated in software, with independent faults at fixed rates.
+\item \textbf{Our own errors.} Twice our optimisation comparison was unequal (\cref{sec:opt}); both errors
+      were caught and corrected, and tests now pin the corrected behaviour.
+\item \textbf{Novelty.} The mechanism of our key-only forgery is textbook Schnorr hygiene; we did not
+      survey the literature exhaustively and claim only that the paper does not discuss it.
+\end{itemize}

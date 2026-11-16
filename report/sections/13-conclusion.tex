@@ -1,0 +1,22 @@
+\section{Conclusion}\label{sec:conclusion}
+
+We reproduced, audited and extended Qiao \emph{et al.}'s certificate-based aggregate signature scheme for
+IIoT, with every result produced by running code on two independent elliptic-curve libraries. Three
+conclusions stand out.
+
+\begin{enumerate}
+\item \textbf{Verma's scheme is broken more simply than the paper says.} Beyond the paper's
+      malicious-KGC attack, which we reproduced, anyone holding a public key can forge, contradicting the
+      paper's Table~II. The underlying rule, that every commitment in the verification equation must be
+      hashed, explains both attacks and both of the repair's hash bindings.
+\item \textbf{The repair works, but costs more than printed.} Its own verification equation costs about
+      twice the row the paper prints, and about $2.4$ times Verma's in measured time. A best-effort
+      optimisation of both schemes does not change that.
+\item \textbf{Deploying the repair still needs care.} Pre-verify signatures at the aggregator, derive
+      nonces with a hedged construction, and add verifier-checked freshness; the paper's replay-resistance
+      and forward-security claims do not hold.
+\end{enumerate}
+
+\paragraph{Future work.} Three directions remain open: an audit of the paper's security proof,
+measurements on constrained sensor hardware, and a comparison with Verma \emph{et al.}'s original
+specification.

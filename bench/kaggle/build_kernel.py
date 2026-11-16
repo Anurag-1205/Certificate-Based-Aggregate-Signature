@@ -1,6 +1,6 @@
 """Build the self-contained Kaggle kernel used for the second-machine check.
 
-RESULTS.md lists "single machine" as a limitation of the timing evidence. This
+analysis/RESULTS.md lists "single machine" as a limitation of the timing evidence. This
 packages ``src/`` and ``bench/`` into a single script that can be pushed to
 Kaggle and run on unrelated hardware, so the sweep, the self-test and the
 forgery demonstration all execute somewhere this project does not control.

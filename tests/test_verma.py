@@ -69,7 +69,7 @@ def test_aggregate_is_constant_size(be, n):
 
 
 def test_verma_aggverify_cost_matches_its_published_row(be):
-    """Sanity check on the counting method used in VERIFICATION.md.
+    """Sanity check on the counting method used in analysis/VERIFICATION.md.
 
     Table III of Qiao et al. gives Verma's aggregate verification as
     (n+2)Te + (n+1)Ta + 2nTh. Our instrument reproduces that exactly -- which

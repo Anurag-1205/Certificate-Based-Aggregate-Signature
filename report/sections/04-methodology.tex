@@ -1,0 +1,62 @@
+\section{Implementation and Methodology}\label{sec:method}
+
+Every result in this report is produced by running code. This section describes the implementation, how
+we checked it, and how we measured. Commands to reproduce each result are in \cref{app:repro}.
+
+\subsection{Implementation}
+Both schemes, all six algorithms each, are implemented in Python~3.12 over native group libraries called
+through \code{ctypes}. The reference implementation of the repaired scheme (\code{scheme.py}) is a direct
+transliteration of the paper's Section~V-A, with the paper's variable names, so it can be read side by
+side with the paper. Optimised variants live in separate modules, so the reference keeps measuring the
+algorithm the paper describes. Two printed typos in the paper are corrected in the code (\cref{app:errata}).
+
+\paragraph{Two independent group backends.} \prov{Implementation}
+The paper's algebra divides by hash values and its proof relies on a group of prime order. Curve25519
+(Ed25519)~\cite{bernstein2012} has cofactor 8, so we use Ristretto255~\cite{rfc9496}, a prime-order group
+built on it, through libsodium~1.0.18. A second backend implements NIST P-256~\cite{fips186} through
+OpenSSL~3.0.13. The two libraries share no code and represent points differently, so every test is also a
+differential test: two independent implementations must agree on every signature, verification result
+and operation count. P-256 is also the curve most often deployed in industrial stacks.
+
+\paragraph{Hashing and encoding.} \prov{Implementation}
+The paper applies $H_1$ and $H_2$ to identical inputs. Instantiating both with the same hash function
+would make $u_i=v_i$ and silently remove the repair's third change. Each oracle therefore gets its own
+domain-separation tag, and a test asserts $u_i\neq v_i$ on identical input. Hash inputs are encoded with
+length prefixes, because plain concatenation of variable-length fields is ambiguous
+(\code{"ab"}$\concat$\code{"c"} and \code{"a"}$\concat$\code{"bc"} collide). Each hash is SHA-512 over the
+tagged encoding, reduced modulo the group order from 64 bytes, which makes the bias negligible.
+
+\paragraph{Operation counting.}
+Every scalar multiplication, point addition and hash passes through one counting wrapper, so the
+$\Te$/$\Ta$/$\Th$ counts of \cref{sec:cost} are measured, not derived by hand. The same instrument
+reproduces Verma's published cost rows exactly, which validates the method.
+
+\subsection{Testing}
+The test suite has 424 tests: 199 that run once per backend (398) and 26 that need no group, such as the
+curve-fitting and aggregator-model tests. A standalone self-test checks 62 algebraic properties of the two
+backends before anything else runs. The tests cover round-trip correctness for both schemes up to
+$n=17$, rejection of every kind of tampering, the forgeries and their failures, both ablations, the
+operation counts, the optimised verifiers against the reference, the aggregator policies, nonce-reuse
+recovery and the hedged-nonce fix.
+
+\subsection{Measurement methodology}
+Timings are taken on an AMD Ryzen~5 7520U laptop, with a second machine (an Intel Xeon at 2.2~GHz on
+Kaggle) used to confirm the Phase~2 timing results. A first sweep on the laptop produced a spurious result,
+$n=100$ appearing cheaper than $n=50$, because the CPU clock roughly doubled partway through the sweep.
+Two measures address this. A stabilisation step runs real scalar multiplications until the per-operation
+cost has stayed constant for several consecutive chunks and at least four seconds have passed. Every
+measurement then interleaves all workloads, across both schemes and all values of $n$, takes the median
+of several rounds, and calibrates repetitions so that each sample lasts at least 20~ms.
+
+We report \emph{ratios} of per-signer cost, obtained as the slope of a linear fit of aggregate
+verification time against $n$ ($n=50$ to $500$), rather than absolute times. Absolute times include Python
+and \code{ctypes} overhead and depend on the curve, which is not the paper's: the paper's unit costs come
+from a pairing library and it does not name its curve. A ratio between two schemes on the same machine,
+curve and library is the quantity the paper's tables make a claim about.
+
+\subsection{Evidence discipline}
+Every number in this report and in the accompanying slides is recomputed by one audit script, which
+reruns the attacks, counts and tests and reads the recorded benchmark files, asserts each claim, and
+stops if any fails. Deterministic results are reported as ``$k/8$'': 4 target messages on each of the 2
+backends. These trials confirm that the code behaves as the algebra predicts on both libraries; they are
+not statistical samples.

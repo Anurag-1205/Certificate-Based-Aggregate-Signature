@@ -1,0 +1,71 @@
+\section{Introduction}\label{sec:intro}
+
+In an Industrial Internet of Things (IIoT) deployment, thousands of sensors report readings that drive
+physical processes: temperatures, pressures, valve states. A forged reading can open a valve or shut
+down a production line, so every reading must be authenticated. Two engineering pressures shape how
+this is done. First, the sensors are constrained and the network is shared, so the verifier should not
+have to receive and check $n$ separate signatures; \emph{aggregate signatures}~\cite{boneh2003} let an
+aggregator compress $n$ signatures into one object that the cloud checks with a single accept-or-reject
+decision. Second, the key infrastructure should be light: a conventional PKI needs certificate storage,
+distribution and revocation, while identity-based signatures~\cite{shamir1984} let the key authority
+compute every user's private key (\emph{key escrow}). \emph{Certificate-based} cryptography~\cite{gentry2003}
+sits between the two: each sensor generates its own key pair, a key generation centre (KGC) issues it a
+certificate, and signing needs both, so neither the sensor's key nor the KGC alone suffices to sign.
+
+That design goal only holds if the KGC cannot forge. The KGC holds a master secret key, and master keys
+leak: the paper we study cites an incident in which an insider at South Africa's Postbank took a data
+centre's master key and stole 3.2 million US dollars~\cite{qiao2023}. A certificate-based aggregate
+signature (CBAS) scheme for IIoT must therefore remain unforgeable even against a \emph{malicious} KGC.
+
+\paragraph{The paper under study.}
+Qiao \emph{et al.}~\cite{qiao2023} (IEEE Systems Journal, 2023) examine the CBAS scheme of Verma
+\emph{et al.}~\cite{verma2020} (CB-CAS, 2020). They show that a malicious KGC that has observed one valid
+signature can forge signatures on arbitrary messages, and they propose a repaired scheme. They prove the
+repair existentially unforgeable under the discrete-logarithm assumption in the random-oracle model, and
+their cost tables present it as exactly as cheap as Verma's scheme.
+
+\paragraph{Our questions.}
+We set out to check the paper's claims independently and then to test the repaired scheme further:
+\begin{enumerate}[label=\textbf{RQ\arabic*}]
+\item Does the paper's attack work, and which change in the repair stops it?
+\item Is the repaired scheme as cheap as the paper's tables state, and does a good implementation change
+      the answer?
+\item Is the paper's attack the weakest attack on Verma's scheme, and which of the repair's changes closes
+      which attack?
+\item What happens when the repaired scheme is deployed: with a faulty or malicious sensor in a batch,
+      with a weak random-number generator, and against the extra security properties the paper claims?
+\end{enumerate}
+
+\paragraph{Contributions.}
+We distinguish throughout between what the paper claims \prov{Paper}, what we re-ran \prov{Reproduced},
+what we measured \prov{Experiment}, our design choices \prov{Implementation}, and results that are new to
+this project \prov{Ours}. Known techniques that we only apply to this scheme are named as such.
+\begin{enumerate}
+\item An implementation of both schemes, faithful to the paper, over two independent prime-order
+      groups, with domain-separated hashes, unambiguous encodings and instrumented operation counting, checked by 424
+      tests that run on both groups (\cref{sec:method}). \prov{Implementation}
+\item Reproduction of the paper's malicious-KGC forgery (8/8 trials) and of the repair's resistance to it
+      (0/8), plus a controlled ablation showing that hashing the nonce commitment $T_i$ is the change that
+      stops this attack (\cref{sec:repro}). \prov{Reproduced}, ablation \prov{Ours}
+\item An audit of the paper's cost tables: the row given for the repaired scheme is identical to Verma's
+      row, but its own verification equation costs $(2n+2)\Te+3n\Ta+3n\Th$, about twice the printed value
+      ($\times1.99$ at $n=100$), confirmed by timing on two curves and two machines (\cref{sec:cost}).
+      \prov{Ours}
+\item A key-only universal forgery on Verma's scheme as described in the paper, which needs no observed
+      signature and contradicts the paper's Table~II, and a $2\times2$ ablation showing that each of the
+      repair's two hash bindings closes a different attack (\cref{sec:keyonly}). \prov{Ours}
+\item A best-effort optimisation study showing that a better implementation does not close the cost gap:
+      about $\times2.4$ before and after (\cref{sec:opt}). \prov{Experiment}
+\item A deployment analysis: the cost of handling invalid signatures at the aggregator
+      (\cref{sec:agg}), key recovery from a repeated signing nonce with a hedged-nonce fix
+      (\cref{sec:nonce}), and tests of the paper's replay-resistance and forward-security claims
+      (\cref{sec:claims}). \prov{Ours}, applying known techniques where stated.
+\end{enumerate}
+
+\paragraph{Organisation.}
+\Cref{sec:background} gives the background and related work, \cref{sec:schemes} the two schemes, and
+\cref{sec:method} our implementation and methodology. \Cref{sec:repro,sec:cost} cover the reproduction and
+the cost audit; \cref{sec:keyonly,sec:opt,sec:agg,sec:nonce,sec:claims} the new investigations.
+\Cref{sec:discussion} discusses what the results do and do not show, and \cref{sec:conclusion}
+concludes. The appendices give full derivations, complete data, the errata we found in the paper, and
+the commands that reproduce every result.

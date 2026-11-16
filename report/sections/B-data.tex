@@ -1,0 +1,64 @@
+\section{Complete Data}\label{app:data}
+
+\subsection{Operation counts, both schemes}
+Measured by the instrumented backend; identical on both libraries.
+
+\begin{table}[ht]
+\centering\small
+\caption{Operation counts: printed in the paper vs counted.}\label{tab:counts-full}
+\begin{tabular}{llll}
+\toprule
+Scheme & Algorithm & Paper & Counted \\
+\midrule
+\multirow{4}{*}{Repaired} & \textsf{Sign} & $1\Te+1\Th$ & $1\Te+2\Th$ \\
+ & \textsf{Verify} & $3\Te+2\Ta+2\Th$ & $4\Te+3\Ta+3\Th$ \\
+ & \textsf{AggSign} & $(n-1)\Ta$ & 0 group operations \\
+ & \textsf{AggVerify} & $(n+2)\Te+(n+1)\Ta+2n\Th$ & $(2n+2)\Te+3n\Ta+3n\Th$ \\
+\midrule
+\multirow{4}{*}{Verma} & \textsf{Sign} & $1\Te+1\Th$ & $1\Te+1\Ta+1\Th$ \\
+ & \textsf{Verify} & $3\Te+2\Ta+2\Th$ & same \\
+ & \textsf{AggSign} & $(n-1)\Ta$ & same \\
+ & \textsf{AggVerify} & $(n+2)\Te+(n+1)\Ta+2n\Th$ & same \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Optimisation, both libraries}
+Per-signer slopes in microseconds, from the recorded run; ranges over four runs are in \cref{sec:opt}.
+
+\begin{table}[ht]
+\centering\small
+\caption{Per-signer aggregate-verification cost ($\mu$s) at each optimisation stage.}\label{tab:opt-detail}
+\begin{tabular}{llcccc}
+\toprule
+Library & Scheme & As specified & + MSM & + prepared roster & Ratio \\
+\midrule
+\multirow{2}{*}{P-256} & Repaired & 169.5 & 107.2 & 53.7 & \multirow{2}{*}{$2.37\to2.40$} \\
+ & Verma & 71.5 & 40.9 & 22.4 & \\
+\midrule
+\multirow{2}{*}{Ristretto255} & Repaired & 259.9 & 256.3 & 222.0 & \multirow{2}{*}{$2.02\to1.99$} \\
+ & Verma & 128.5 & 122.3 & 111.4 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Aggregator sub-batching}
+An aggregator that cannot verify can split a batch of 500 into sub-batches of size $k$, so that a fault
+loses only its sub-batch. With the measured cost model $\mathrm{verify}(k)=0.0420+0.0564\,k$~ms, the
+cost per delivered signature has an interior optimum.
+
+\begin{table}[ht]
+\centering\small
+\caption{Cost-optimal sub-batch size under blind aggregation (P-256).}\label{tab:subbatch}
+\begin{tabular}{rccc}
+\toprule
+Fault rate & Best $k$ & Cost per delivered signature & Delivered \\
+\midrule
+0.1\% & 25 & 0.0595 ms & 97.5\% \\
+0.5\% & 10 & 0.0637 ms & 95.1\% \\
+2.0\% & 5 & 0.0716 ms & 90.4\% \\
+5.0\% & 5 & 0.0837 ms & 77.4\% \\
+10.0\% & 2 & 0.0955 ms & 81.0\% \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,102 @@
+\section{The Schemes Under Study}\label{sec:schemes}
+
+\subsection{System model}
+\Cref{fig:arch} shows the four parties and six algorithms common to both schemes~\cite{qiao2023}. The
+KGC runs \textsf{Setup} once and publishes the system parameters. Each sensor generates its own key pair
+(\textsf{KeyGen}) and obtains a certificate from the KGC (\textsf{CertGen}). Sensors sign their readings
+(\textsf{Sign}); an aggregator in the plant combines $n$ signatures (\textsf{AggSign}); the cloud server
+checks the aggregate with one equation (\textsf{AggVerify}) and either accepts all $n$ readings or rejects
+the batch.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}[scale=1.2, transform shape,
+  party/.style={draw=#1, line width=0.9pt, fill=#1!8, rounded corners=3pt, align=center,
+                minimum height=1.05cm, font=\small},
+  lab/.style={font=\footnotesize, align=center},
+  >={Stealth[length=2.2mm]}]
+\node[party=kgc, minimum width=3.4cm] (kgc) at (5.2,3.2) {\textbf{KGC}\\ holds $\sTA$ \\ \textsf{Setup}, \textsf{CertGen}};
+\node[party=sen, minimum width=2.4cm] (s1) at (0,1.2) {\textbf{Sensor} $i$\\ \textsf{KeyGen}, \textsf{Sign}};
+\node[party=sen, minimum width=2.4cm] (s2) at (0,-0.4) {\textbf{Sensor} $j$\\ \textsf{KeyGen}, \textsf{Sign}};
+\node[font=\small] at (0,-1.35) {$\vdots$};
+\node[party=agg, minimum width=2.7cm] (agg) at (5.2,0.4) {\textbf{Aggregator}\\ \textsf{AggSign}};
+\node[party=ver, minimum width=2.9cm] (cloud) at (10.2,0.4) {\textbf{Cloud server}\\ \textsf{AggVerify}};
+\draw[->, kgc, line width=0.8pt] (kgc.west) -| node[lab, above, pos=0.25] {$\mathit{Cert}_i$} (s1.north);
+\draw[->, sen, line width=0.8pt] ([xshift=0.6cm]s1.north) |- node[lab, below, pos=0.75] {$pk_i$} ([yshift=-0.3cm]kgc.west);
+\draw[->, kgc, line width=0.8pt] (kgc.east) -| node[lab, above, pos=0.3] {public parameters} (cloud.north);
+\draw[->, sen, line width=0.8pt] (s1.east) -- node[lab, above, sloped] {$m_i,\ \delta_i$} (agg.west);
+\draw[->, sen, line width=0.8pt] (s2.east) -- (agg.west);
+\draw[->, agg, line width=1.1pt] (agg.east) -- node[lab, above] {$m_1,\dots,m_n,\ \delta$} (cloud.west);
+\node[lab, ver] at (10.2,-0.75) {accept all $n$ or reject};
+\end{tikzpicture}
+\caption{System model shared by both schemes. In the repaired scheme $\mathit{Cert}_i=(c_i,R_i)$,
+$\delta_i=(T_i,z_i)$ and the aggregate is $\delta=(T_1,\dots,T_n,z)$.}
+\label{fig:arch}
+\end{figure}
+
+\Cref{tab:notation} lists the notation, which follows the paper.
+
+\begin{table}[ht]
+\centering\small
+\caption{Notation.}\label{tab:notation}
+\begin{tabularx}{\linewidth}{lX}
+\toprule
+Symbol & Meaning \\
+\midrule
+$G$, $p$, $P$ & a cyclic group of prime order $p$ with generator $P$ \\
+$\sTA$, $\PTA=\sTA P$ & KGC master secret key and public key \\
+$id_i$, $sk_i$, $pk_i=sk_iP$ & identity, secret key and public key of sensor $i$ \\
+$\mathit{Cert}_i$, $c_i$ & certificate of sensor $i$; $c_i$ is its secret scalar part \\
+$R_i$ (or $R_{1i}$) & certificate commitment, a public point \\
+$T_i=t_iP$ ($R_i$ in Verma) & per-signature nonce commitment; $t_i$ is the nonce \\
+$H_0,H_1,H_2$ & hash functions to $\Zp$, modelled as independent random oracles \\
+$h_0^i, v_i, u_i$ & the hash values used in certificates and signatures \\
+$\Delta$ & public ``state information'' fixed in \textsf{Setup} \\
+$\Te,\Ta,\Th$ & cost of a scalar multiplication, a point addition, a hash \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Verma \emph{et al.}'s CB-CAS}
+We implement Verma's scheme as the paper reviews it in its Section~IV-A~\cite{qiao2023}; we did not
+cross-check Verma's original article~\cite{verma2020}. The KGC picks $\sTA\in\Zp$. Sensor $i$ picks
+$sk_i\in\Zp$ and publishes $pk_i=sk_iP$. The certificate is
+\begin{equation}
+R_{1i}=r_{1i}P,\qquad c_i=r_{1i}+\sTA\,h_0^i,\qquad h_0^i=H_0(id_i\concat pk_i),
+\end{equation}
+which anyone can check as $c_iP=R_{1i}+h_0^i\PTA$. To sign $m_i$, the sensor picks a nonce $r_{2i}$ and
+computes
+\begin{equation}\label{eq:verma-sign}
+R_i=R_{1i}+r_{2i}P,\qquad v_i=H_1(m_i\concat pk_i\concat id_i\concat\Delta),\qquad
+z_i=r_{2i}+c_i+sk_i v_i,
+\end{equation}
+and outputs $\delta_i=(R_i,z_i)$. The aggregate is $R=\sum R_i$, $z=\sum z_i$, and it verifies if
+\begin{equation}\label{eq:verma-verify}
+zP=R+\Big(\sum_i h_0^i\Big)\PTA+\sum_i v_i\,pk_i .
+\end{equation}
+The aggregate has constant size, one point and one scalar for any $n$. Note that the hash $v_i$ depends
+on the message but not on the commitment $R_i$.
+
+\subsection{Qiao \emph{et al.}'s repaired scheme}
+The repair changes the certificate and the signature~\cite{qiao2023}. The certificate commitment
+$R_i=r_iP$ now enters the certificate hash, and $\mathit{Cert}_i=(c_i,R_i)$ with $R_i$ public:
+\begin{equation}
+c_i=r_i+\sTA\,h_0^i,\qquad h_0^i=H_0(id_i\concat pk_i\concat R_i).
+\end{equation}
+To sign, the sensor commits to a fresh nonce, $T_i=t_iP$, and computes two hash values over the message
+\emph{and both commitments}:
+\begin{gather}
+v_i=H_1(m_i\concat pk_i\concat R_i\concat id_i\concat T_i\concat\Delta),\qquad
+u_i=H_2(m_i\concat pk_i\concat R_i\concat id_i\concat T_i\concat\Delta),\\
+z_i=t_i+c_i u_i+sk_i v_i,\qquad \delta_i=(T_i,z_i). \label{eq:qiao-sign}
+\end{gather}
+The aggregator outputs $\delta=(T_1,\dots,T_n,z)$ with $z=\sum z_i$; only the scalar half compresses. The
+verifier recomputes $h_0^i,v_i,u_i$ and accepts if
+\begin{equation}\label{eq:qiao-verify}
+zP=\sum_i T_i+\sum_i u_iR_i+\Big(\sum_i u_ih_0^i\Big)\PTA+\sum_i v_i\,pk_i .
+\end{equation}
+Correctness follows by substituting $z_i$, $c_iP=R_i+h_0^i\PTA$ and $pk_i=sk_iP$. Compared with
+Verma's scheme, the repair (1)~hashes $R_i$ into $H_0$, $H_1$ and $H_2$; (2)~hashes the nonce commitment
+$T_i$ into $H_1$ and $H_2$; and (3)~scales the certificate and the secret key by two independent hash
+values $u_i$ and $v_i$. The price is that each $T_i$ must travel to the verifier, so the aggregate grows
+with $n$.

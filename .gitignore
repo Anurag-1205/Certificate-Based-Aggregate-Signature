@@ -71,3 +71,19 @@ CONTEXT.md
 
 # Rendered PNGs of the final deck (rebuild with presentation/build/render.sh 110 Final).
 presentation/render_final/
+
+# Speaker notes are shared within the team privately, not published.
+presentation/speaker_notes*.md
+
+# Deck build scripts carry the speaker notes inline; kept local. The deck
+# itself (.pptx without notes, .pdf) and the claims audit are published.
+presentation/build/
+
+# Report: LaTeX by-products; the built PDF is published as CBAS_Final_Report.pdf.
+report/main.pdf
+report/*.aux
+report/*.bbl
+report/*.blg
+report/*.log
+report/*.out
+report/*.toc
