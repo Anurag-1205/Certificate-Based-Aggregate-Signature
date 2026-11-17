@@ -1,14 +1,15 @@
 \section{Implementation and Methodology}\label{sec:method}
 
 Every result in this report is produced by running code. This section describes the implementation, how
-we checked it, and how we measured. Commands to reproduce each result are in \cref{app:repro}.
+we checked it, and how we measured. The repository's README lists the command behind each result.
 
 \subsection{Implementation}
 Both schemes, all six algorithms each, are implemented in Python~3.12 over native group libraries called
 through \code{ctypes}. The reference implementation of the repaired scheme (\code{scheme.py}) is a direct
 transliteration of the paper's Section~V-A, with the paper's variable names, so it can be read side by
 side with the paper. Optimised variants live in separate modules, so the reference keeps measuring the
-algorithm the paper describes. Two printed typos in the paper are corrected in the code (\cref{app:errata}).
+algorithm the paper describes. Two printed typos in the paper are corrected in the code: \textsf{KeyGen} prints $pk_i=s_i$ for
+$pk_i=s_iP$, and the repaired certificate check uses Verma's $R_{1i}$ where $R_i$ is meant.
 
 \paragraph{Two independent group backends.} \prov{Implementation}
 The paper's algebra divides by hash values and its proof relies on a group of prime order. Curve25519
@@ -41,7 +42,7 @@ recovery and the hedged-nonce fix.
 
 \subsection{Measurement methodology}
 Timings are taken on an AMD Ryzen~5 7520U laptop, with a second machine (an Intel Xeon at 2.2~GHz on
-Kaggle) used to confirm the Phase~2 timing results. A first sweep on the laptop produced a spurious result,
+Kaggle) used to confirm the timing results. A first sweep on the laptop produced a spurious result,
 $n=100$ appearing cheaper than $n=50$, because the CPU clock roughly doubled partway through the sweep.
 Two measures address this. A stabilisation step runs real scalar multiplications until the per-operation
 cost has stayed constant for several consecutive chunks and at least four seconds have passed. Every

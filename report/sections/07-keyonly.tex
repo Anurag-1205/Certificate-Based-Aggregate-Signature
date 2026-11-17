@@ -5,18 +5,31 @@ has observed one signature. We asked whether a much weaker attacker suffices.
 
 \subsection{The forgery}
 \prov{Ours}. Consider Verma's verification equation for a single signature,
-\begin{equation}
+\begin{equation}\label{eq:verma-single}
 zP=R+h_0\PTA+v\,pk,\qquad h_0=H_0(id\concat pk),\qquad v=H_1(m\concat pk\concat id\concat\Delta).
 \end{equation}
 Neither hash contains $R$, $R$ appears with coefficient 1, and $R$ travels inside the signature, so the
-signer (or a forger) chooses it. Anyone who knows the victim's $id$ and $pk$ and the public $\PTA$ can
-therefore forge on any message $m$:
-\begin{enumerate}
-\item pick any $z$, for example $z=0$;
-\item compute $h_0$ and $v$ from public values;
-\item set $R=zP-h_0\PTA-v\,pk$.
-\end{enumerate}
-The pair $(R,z)$ satisfies the equation by construction. The forgery uses only point arithmetic: no
+signer (or a forger) chooses it.
+
+\begin{proposition}[Key-only universal forgery]\label{prop:keyonly}
+Let $id$ and $pk$ belong to an honestly enrolled signer of Verma's scheme, as specified in Section~IV-A
+of~\cite{qiao2023}. Given only the public values $\PTA$, $id$, $pk$ and $\Delta$, an adversary can output,
+for any message $m$, a pair $(R,z)$ that the verification equation \eqref{eq:verma-single} accepts. It
+succeeds with probability 1, sees no signature, and computes no discrete logarithm.
+\end{proposition}
+
+\begin{proof}
+The adversary (1) picks any $z\in\Zp$, for example $z=0$; (2) computes $h_0=H_0(id\concat pk)$ and
+$v=H_1(m\concat pk\concat id\concat\Delta)$, whose inputs are all public; and (3) sets
+$R=zP-h_0\PTA-v\,pk$. The verifier recomputes the same $h_0$ and $v$, because neither depends on $R$, and
+\[
+R+h_0\PTA+v\,pk=(zP-h_0\PTA-v\,pk)+h_0\PTA+v\,pk=zP,
+\]
+so \eqref{eq:verma-single} holds. No step can fail, so the probability is 1, and the cost is two hashes,
+three scalar multiplications and two point subtractions.
+\end{proof}
+
+The forgery uses only point arithmetic: no
 secret, no observed signature, no interaction with the KGC or the victim, and no discrete logarithm. In
 the taxonomy of~\cite{gmr1988} it is a key-only universal forgery, the strongest kind. It is the familiar
 failure of a Schnorr signature whose challenge omits the commitment, $c=H(m)$ instead of

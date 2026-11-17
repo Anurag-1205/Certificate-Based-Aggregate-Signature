@@ -20,3 +20,22 @@ conclusions stand out.
 \paragraph{Future work.} Three directions remain open: an audit of the paper's security proof,
 measurements on constrained sensor hardware, and a comparison with Verma \emph{et al.}'s original
 specification.
+
+\section*{Contributions of Team Members}\addcontentsline{toc}{section}{Contributions of Team Members}
+All three members studied the paper together, reviewed every result before it was reported, and wrote
+this report and the presentation. The research work was divided as follows.
+
+\smallskip\noindent\textbf{Anurag Kaushal.} The implementation of both schemes over the two group
+libraries, with domain-separated hashing, instrumented operation counting, the test suite and the audit
+script (\cref{sec:method}); the audit of the paper's cost tables by operation counting and timing
+(\cref{sec:cost}); the key-only universal forgery and its contradiction of Table~II (Proposition~1); and
+both binding ablations, including the $2\times2$ experiment (\cref{sec:repro,sec:keyonly}).
+
+\smallskip\noindent\textbf{Pranav Vyas.} The reproduction of the paper's malicious-KGC attack and of its
+failure on the repaired scheme (\cref{sec:repro}); nonce-reuse key recovery for an outsider and for the
+KGC, with the hedged-nonce fix (\cref{sec:nonce}); and the tests of the replay-resistance and
+forward-security claims (\cref{sec:claims}).
+
+\smallskip\noindent\textbf{Md Taufique Hussain.} The best-effort optimisation of both verifiers and its
+measurement on both libraries (\cref{sec:opt}); and the aggregator study: the three policies, fault
+localisation and the measured policy crossover (\cref{sec:agg}).

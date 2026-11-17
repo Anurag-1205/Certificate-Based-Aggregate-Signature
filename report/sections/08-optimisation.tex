@@ -38,8 +38,7 @@ $h_0^i$ and its encodings for every batch.}
 \end{figure}
 
 On Ristretto255 libsodium offers no native multi-scalar routine, so only the roster helps. The ratio
-barely moves: $2.02$--$2.20$ as specified and $1.99$--$2.14$ optimised (\cref{tab:opt-detail} in
-\cref{app:data}). Which optimisation pays depends on the library rather than the scheme: OpenSSL keeps
+barely moves: $2.02$--$2.20$ as specified and $1.99$--$2.14$ optimised. Which optimisation pays depends on the library rather than the scheme: OpenSSL keeps
 points in projective coordinates, so additions are cheap and encoding costs an inversion, while libsodium
 keeps a point as its encoding, so encoding is nearly free and additions are expensive.
 

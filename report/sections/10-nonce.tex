@@ -15,8 +15,9 @@ How many signatures are needed depends on the scheme and the attacker (\cref{tab
 scheme the certificate term $c_i$ has coefficient 1, so the nonce and the certificate merge into one
 unknown and two signatures reveal $sk_i$ (although Verma's scheme is forgeable with none,
 \cref{sec:keyonly}). The repair multiplies $c_i$ by the per-message hash $u_i$, which makes it a separate
-unknown: an outsider needs three signatures and solves a $3\times3$ linear system for $t$, $c_i$ and $sk_i$
-(\cref{app:nonce}). With only two signatures, every guess of $sk_i$ fits some $c_i$, and picking the right
+unknown: an outsider needs three signatures. Subtracting the first from the other two removes $t$ and
+leaves two linear equations in $c_i$ and $sk_i$, which Cramer's rule solves; $t$ then follows from any one
+signature. With only two signatures, every guess of $sk_i$ fits some $c_i$, and picking the right
 one is as hard as a discrete logarithm. The KGC, however, issued the certificate and already knows $c_i$,
 so two signatures give it $sk_i$, the very key that certificate-based signatures promise the KGC never
 learns.

@@ -15,8 +15,8 @@ R'=R_{1i}+\lambda\,(R_i-R_{1i}),\qquad z'=c_i+\lambda\,(z_i-c_i),
 \end{equation}
 which is a valid signature on $m'$ with the unknown nonce $\lambda r_{2i}$: substituting into
 \cref{eq:verma-verify} gives $z'P=R'+h_0^i\PTA+v'pk_i$. The attacker never learns $r_{2i}$ or $sk_i$; it
-rescales a value it cannot open. \Cref{app:attack} gives the paper's step-by-step derivation, which our
-function \code{forge\_verma} follows line by line.
+rescales a value it cannot open. Our function \code{forge\_verma} follows the paper's derivation step by
+step and takes no secret key as an argument, which a test checks.
 
 \subsection{Results}
 We ran the attack for 4 target messages on each backend, against Verma's scheme and, with the same

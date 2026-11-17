@@ -57,6 +57,6 @@ signature), not the order of magnitude one might expect. That makes pre-verifica
 \paragraph{Recommendation.} Where sensors almost never fail, RETAIN is cheapest. Where an attacker can
 submit bad signatures, the attacker chooses the fault rate, so PREVERIFY is the safe default: it costs
 about $2.9$ times a blind aggregation on a clean batch and never loses one. An aggregator too constrained
-to verify can still limit the damage by sub-batching; \cref{tab:subbatch} in \cref{app:data} gives the
-cost-optimal batch size for each fault rate. This is an availability result, not a weakness in the
+to verify can still limit the damage by sub-batching: under our measured cost model the best sub-batch
+size falls from 25 signatures at a 0.1\% fault rate to 2 at 10\%. This is an availability result, not a weakness in the
 cryptography.

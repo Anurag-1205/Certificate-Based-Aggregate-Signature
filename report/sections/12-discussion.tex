@@ -1,7 +1,7 @@
 \section{Discussion}\label{sec:discussion}
 
 \subsection{Summary of findings}
-\Cref{tab:findings} lists every result with its provenance and evidence. One reproduces the paper; the
+\Cref{tab:findings} lists every result with the research question it answers, its provenance and its evidence. One reproduces the paper; the
 others are ours, either audits of the paper's claims, measurements, or new analysis. Where a known
 technique is applied to this scheme (nonce reuse, hedged nonces, bad-signature identification), only the
 application is claimed.
@@ -9,19 +9,19 @@ application is claimed.
 \begin{table}[ht]
 \centering\small
 \caption{All results, with provenance and evidence.}\label{tab:findings}
-\begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.7cm}>{\raggedright\arraybackslash}p{4.1cm}}
+\begin{tabularx}{\linewidth}{c>{\raggedright\arraybackslash}X>{\raggedright\arraybackslash}p{2.4cm}>{\raggedright\arraybackslash}p{3.7cm}}
 \toprule
-Result & Kind & Evidence \\
+RQ & Result & Kind & Evidence \\
 \midrule
-The paper's malicious-KGC attack forges Verma signatures & Reproduced & 8/8 \\
-The repair stops it, and the $T_i$ binding is the change that does & Reproduced + ablation & 0/8; ablation 8/8 \\
-The repaired scheme costs about twice its printed row & Audit & $\times1.99$ at $n=100$; timing 2.12--2.37 \\
-Anyone with a public key can forge Verma's scheme; Table II is wrong & Ours & 8/8, 8/8 in aggregate \\
-Hashing $T$ and hashing $R$ each block their own attack & Ours & $2\times2$, 8 trials per cell \\
-Best-effort optimisation of both schemes does not close the gap & Experiment & $\times2.37\to\times2.40$ \\
-Pre-verifying a batch is cheap, so one bad signature need not sink it & Ours (applied) & $1.7\times$ per signature \\
-A repeated nonce reveals every secret: 3 signatures, or 2 for the KGC & Ours (applied) & 8/8 \\
-The replay and forward-security claims do not hold & Ours & both tested \\
+1 & The paper's malicious-KGC attack forges Verma signatures & Reproduced & 8/8 \\
+1 & The repair stops it; the $T_i$ binding is what does & Reproduced; ablation ours & 0/8; ablation 8/8 \\
+2 & The repaired scheme costs about twice its printed row & Audit & $\times1.99$; median timing 2.12--2.37 \\
+3 & Anyone with a public key can forge Verma's scheme; Table II is wrong & Ours & 8/8, 8/8 in aggregate \\
+3 & Hashing $T$ and hashing $R$ each block their own attack & Ours & $2\times2$, 8 trials per cell \\
+2 & Best-effort optimisation of both schemes does not close the gap & Experiment & $\times2.37\to\times2.40$ \\
+4 & Pre-verifying is cheap, so one bad signature need not sink a batch & Ours (applied) & $1.7\times$ per signature \\
+4 & A repeated nonce reveals the keys: 3 signatures, 2 for the KGC & Ours (applied) & 8/8 \\
+4 & The replay and forward-security claims do not hold & Ours & both tested \\
 \bottomrule
 \end{tabularx}
 \end{table}

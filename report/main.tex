@@ -6,12 +6,13 @@
 \usepackage{mathptmx}
 \usepackage[scaled=0.92]{helvet}
 \usepackage{courier}
-\usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amssymb}
+\usepackage[hmargin=1in,vmargin=2.3cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
 \usepackage[expansion=false]{microtype}
 \usepackage{graphicx}
 \usepackage{booktabs,tabularx,multirow,threeparttable}
 \usepackage{caption}
+\usepackage{float}
 \usepackage{enumitem}
 \usepackage{xcolor}
 \usepackage{tikz}
@@ -38,6 +39,7 @@
 \newcommand{\sTA}{s_{\mathrm{TA}}}
 \newcommand{\Zp}{\mathbb{Z}_p^{*}}
 \newcommand{\concat}{\,\|\,}
+\newtheorem{proposition}{Proposition}
 \newcommand{\Fone}{\mathcal{F}_1}
 \newcommand{\Ftwo}{\mathcal{F}_2}
 \newcommand{\code}[1]{\texttt{#1}}
@@ -71,7 +73,7 @@ Scheme With Provable Security for Industrial Internet of Things,''\\
 \begin{tabular}{l@{\hspace{2.5em}}l}
 Anurag Kaushal & Roll No.\ 2025202013\\
 Pranav Vyas & Roll No.\ 2025202015\\
-Taufique & Roll No.\ 2025202007\\
+Md Taufique Hussain & Roll No.\ 2025202007\\
 \end{tabular}\par
 \vspace{1.2cm}
 {\small Code, tests and recorded results:\\[2pt]
@@ -122,13 +124,9 @@ Internet of Things, malicious KGC, cryptanalysis, reproducibility, nonce reuse.
 \input{sections/12-discussion}
 \input{sections/13-conclusion}
 
+\clearpage
 \bibliographystyle{unsrtnat}
 \bibliography{refs}
 
-\appendix
-\input{sections/A-derivations}
-\input{sections/B-data}
-\input{sections/C-errata}
-\input{sections/D-reproducing}
 
 \end{document}
